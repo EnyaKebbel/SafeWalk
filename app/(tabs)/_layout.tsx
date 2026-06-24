@@ -1,9 +1,21 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons"
+import { colors } from '../../src/constants/theme';
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: true }}>
+    // Gemeinsames Styling fuer Header und Tab-Bar, damit alle Tabs einheitlich wirken.
+    <Tabs screenOptions={{  headerStyle: {
+            backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+        tabBarStyle: {
+            backgroundColor: colors.card,
+            borderTopColor: colors.border,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedText,
+    }}>
       <Tabs.Screen
         name="index"
         options={{

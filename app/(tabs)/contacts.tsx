@@ -1,9 +1,12 @@
-import { View, Text } from "react-native";
+import {ScreenContainer} from "../../src/components/layout/ScreenContainer";
+import {AppText} from "../../src/components/layout/AppText";
 
+// Contacts-Screen fuer das Verwalten der Trusted Contacts.
 export default function ContactsScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Contacts Screen</Text>
-    </View>
+      <ScreenContainer>
+          <AppText>Contacts</AppText>
+      </ScreenContainer>
   );
 }
+
