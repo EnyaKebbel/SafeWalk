@@ -46,7 +46,7 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
           }
         }
       } catch (err) {
-        console.error("Error fetching map preview data:", err);
+        console.warn("Error fetching map preview data:", err);
       }
     })();
   }, [activeWalk]);
@@ -110,7 +110,7 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
 const styles = StyleSheet.create({
   mapPreviewCard: {
     backgroundColor: colors.card,
-    borderRadius: radius.xl,
+    borderRadius: radius.sm,
     overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },

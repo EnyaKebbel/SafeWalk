@@ -16,6 +16,7 @@ export default function RootLayout() {
     const [loaded, error] = useFonts({
         "nunito-regular": require("../src/assets/fonts/Nunito-Regular.ttf"),
         "nunito-bold": require("../src/assets/fonts/Nunito-Bold.ttf"),
+        "righteous-regular": require("../src/assets/fonts/Righteous-Regular.ttf"),
     });
 
     // Splash Screen bleibt sichtbar, bis die Schrift geladen ist.
