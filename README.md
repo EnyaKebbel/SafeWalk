@@ -35,7 +35,8 @@ npm install
 Dafür muss man im Hauptordner eine Datei erstellen, die einfach nur `.env` heißt. In diese Datei kopiert man Folgendes rein und trägt seine eigenen Keys ein:
 
 ```env
-
+EXPO_PUBLIC_OPENROUTESERVICE_KEY=eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiNzlmNDY4NzA5ZTRhMDE4Yzk1ODVkOTAxZWViYTVlIiwiaCI6Im11cm11cjY0In0=
+EXPO_PUBLIC_OPENROUTE_SERVICE_API_KEY=eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiNzlmNDY4NzA5ZTRhMDE4Yzk1ODVkOTAxZWViYTVlIiwiaCI6Im11cm11cjY0In0=
 ```
 
 4. App starten:
