@@ -1,8 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "../../constants/theme";
-import { ActiveWalk, addTimeToActiveWalk } from "../../services/walkService";
+import { ActiveWalk } from "../../services/walkService";
 import AppCard from "../cards/AppCard";
 import PrimaryButton from "../buttons/PrimaryButton";
 
@@ -11,7 +11,6 @@ type ActiveWalkCardProps = {
   remainingTime: string;
   arrivalTime: string;
   onArrivedSafely: () => void;
-  onTimeAdded?: () => void;
 };
 
 // Kompakte Zusammenfassung des laufenden Walks auf dem Home Screen.
@@ -20,32 +19,19 @@ export default function ActiveWalkCard({
   remainingTime,
   arrivalTime,
   onArrivedSafely,
-  onTimeAdded,
 }: ActiveWalkCardProps) {
-  const handleAddTime = async () => {
-    await addTimeToActiveWalk(5);
-    if (onTimeAdded) {
-      onTimeAdded();
-    }
-  };
-
   return (
     <AppCard>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
+        <View>
           <Text style={styles.eyebrow}>Active walk</Text>
           <Text style={styles.destination} numberOfLines={2}>
             {activeWalk.destination}
           </Text>
         </View>
-        <View style={styles.timerControls}>
-          <TouchableOpacity style={styles.addTimeBtn} onPress={handleAddTime}>
-            <Text style={styles.addTimeText}>+5m</Text>
-          </TouchableOpacity>
-          <View style={styles.timerBadge}>
-            <Ionicons name="time-outline" size={18} color={colors.text} />
-            <Text style={styles.timerText}>{remainingTime}</Text>
-          </View>
+        <View style={styles.timerBadge}>
+          <Ionicons name="time-outline" size={18} color={colors.text} />
+          <Text style={styles.timerText}>{remainingTime}</Text>
         </View>
       </View>
 
@@ -80,10 +66,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between",
-    alignItems: 'flex-start',
-  },
-  headerLeft: {
-    flex: 1,
   },
   eyebrow: {
     color: colors.secondary,
@@ -96,23 +78,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: "nunito-bold",
     fontSize: 20,
-  },
-  timerControls: {
-    alignItems: "flex-end",
-  },
-  addTimeBtn: {
-    backgroundColor: colors.cardLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.full,
-    marginBottom: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  addTimeText: {
-    color: colors.primary,
-    fontFamily: "nunito-bold",
-    fontSize: 12,
+    maxWidth: 210,
   },
   timerBadge: {
     alignItems: "center",

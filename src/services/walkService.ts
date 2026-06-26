@@ -53,15 +53,3 @@ export async function getActiveWalk() {
 export async function clearActiveWalk() {
     await AsyncStorage.removeItem(ACTIVE_WALK_STORAGE_KEY);
 }
-
-export async function addTimeToActiveWalk(minutesToAdd: number) {
-    const walk = await getActiveWalk();
-    if (!walk) return null;
-
-    const newEndsAt = new Date(new Date(walk.endsAt).getTime() + minutesToAdd * 60 * 1000);
-    walk.endsAt = newEndsAt.toISOString();
-    walk.estimatedMinutes += minutesToAdd;
-
-    await AsyncStorage.setItem(ACTIVE_WALK_STORAGE_KEY, JSON.stringify(walk));
-    return walk;
-}

@@ -83,7 +83,6 @@ export default function HomeScreen() {
                     remainingTime={remainingTime}
                     arrivalTime={arrivalTime}
                     onArrivedSafely={handleArrivedSafely}
-                    onTimeAdded={loadActiveWalk}
                 />
             ) : (
                 <AppCard>
