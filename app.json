@@ -1,2 +1,10 @@
 {
+  "expo": {
+    "name": "SafeWalk",
+    "slug": "safewalk",
+    "version": "1.0.0",
+    "scheme": "safewalk",
+    "platforms": ["ios", "android"],
+    "newArchEnabled": true
+  }
 }
