@@ -9,6 +9,7 @@ import {
   Linking,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import * as SMS from 'expo-sms';
 import { colors, spacing } from "../../src/constants/theme";
 import RouteSuggestionCard from "../../src/components/walk/RouteSuggestionCard";
 import WalkDestinationForm, {
@@ -101,11 +102,39 @@ export default function WalkScreen() {
       return new Date(activeWalk.endsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }, [activeWalk]);
 
-  const handleArrivedSafely = async () => {
+  const [notifyModalVisible, setNotifyModalVisible] = useState(false);
+
+  const handleArrivedSafely = () => {
       triggerSuccessHaptic();
+      setNotifyModalVisible(true);
+  };
+
+  const finishWalkAndClose = async () => {
+      setNotifyModalVisible(false);
       await clearActiveWalk();
       setActiveWalk(null);
       setRemainingTime("");
+  };
+
+  const handleNotifyContact = async (contacts: TrustedContact[]) => {
+      const message = "I just arrived safely at my destination!";
+      const phoneNumbers = contacts.map(c => c.contactNumber);
+      
+      try {
+          // @ts-ignore
+          const isAvailable = await SMS.isAvailableAsync();
+          if (isAvailable) {
+              // @ts-ignore
+              await SMS.sendSMSAsync(phoneNumbers, message);
+          } else {
+              console.error("SMS is not available on this device");
+              alert("SMS not available: " + phoneNumbers.join(", "));
+          }
+      } catch (e) {
+          console.error("Could not open SMS app", e);
+      }
+      
+      finishWalkAndClose();
   };
 
   // Fragt OpenRouteService nach einer Gehzeit und uebernimmt sie als Vorschlag.
@@ -159,10 +188,18 @@ export default function WalkScreen() {
 
   if (activeWalk) {
     return (
-        <ActiveWalkTracker 
-            activeWalk={activeWalk}
-            onEndWalk={handleArrivedSafely}
-        />
+        <>
+            <ActiveWalkTracker 
+                activeWalk={activeWalk}
+                onEndWalk={handleArrivedSafely}
+            />
+            <NotifyContactModal
+                visible={notifyModalVisible}
+                onClose={() => setNotifyModalVisible(false)}
+                onSelectContacts={handleNotifyContact}
+                onSkip={finishWalkAndClose}
+            />
+        </>
     );
   }
 
