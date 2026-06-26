@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { StyleSheet, Text, View, Linking, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -35,6 +35,7 @@ function formatRemainingTime(endsAt: string) {
 export default function HomeScreen() {
     const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
     const [remainingTime, setRemainingTime] = useState("");
+    const hasPanickedRef = useRef(false);
     
     const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
@@ -43,6 +44,9 @@ export default function HomeScreen() {
         const walk = await getActiveWalk();
         setActiveWalk(walk);
         setRemainingTime(walk ? formatRemainingTime(walk.endsAt) : "");
+        if (!walk) {
+            hasPanickedRef.current = false;
+        }
     }, []);
 
     useFocusEffect(
@@ -51,14 +55,32 @@ export default function HomeScreen() {
         }, [loadActiveWalk])
     );
 
+    const triggerPanic = async () => {
+        try {
+            const topContact = await getTopPriorityContact();
+            const phoneToCall = topContact ? topContact.contactNumber : "112";
+            await Linking.openURL(`tel:${phoneToCall}`);
+        } catch (err) {
+            console.error("Error opening dialer", err);
+            Alert.alert("Error", "Could not open the phone dialer.");
+        }
+    };
+
     useEffect(() => {
         if (!activeWalk) {
+            hasPanickedRef.current = false;
             return;
         }
 
         // Aktualisiert nur die Anzeige; die eigentliche Endzeit bleibt im Storage.
         const intervalId = setInterval(() => {
+            const remainingMs = getRemainingMs(activeWalk.endsAt);
             setRemainingTime(formatRemainingTime(activeWalk.endsAt));
+            
+            if (remainingMs <= 0 && !hasPanickedRef.current) {
+                hasPanickedRef.current = true;
+                triggerPanic();
+            }
         }, 1000);
 
         return () => clearInterval(intervalId);
@@ -113,17 +135,6 @@ export default function HomeScreen() {
         }
         
         finishWalkAndClose();
-    };
-
-    const triggerPanic = async () => {
-        try {
-            const topContact = await getTopPriorityContact();
-            const phoneToCall = topContact ? topContact.contactNumber : "112";
-            await Linking.openURL(`tel:${phoneToCall}`);
-        } catch (err) {
-            console.error("Error opening dialer", err);
-            Alert.alert("Error", "Could not open the phone dialer.");
-        }
     };
 
     return (
