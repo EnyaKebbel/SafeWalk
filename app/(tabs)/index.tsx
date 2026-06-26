@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { colors, spacing } from "../../src/constants/theme";
@@ -8,6 +8,8 @@ import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
 import { ActiveWalk, clearActiveWalk, getActiveWalk } from "../../src/services/walkService";
+import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
+import { TrustedContact } from "../../src/services/contactService";
 
 // Berechnet die Anzeige fuer den laufenden Timer aus der gespeicherten Endzeit.
 function formatRemainingTime(endsAt: string) {
@@ -28,6 +30,8 @@ function formatRemainingTime(endsAt: string) {
 export default function HomeScreen() {
     const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
     const [remainingTime, setRemainingTime] = useState("");
+    
+    const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
     // Laedt den aktiven Walk immer neu, wenn der Home Screen wieder sichtbar wird.
     const loadActiveWalk = useCallback(async () => {
@@ -66,11 +70,28 @@ export default function HomeScreen() {
         });
     }, [activeWalk]);
 
-    const handleArrivedSafely = async () => {
-        // Beendet den Walk lokal. Die spaetere Notfalllogik kann hier andocken.
+    const handleArrivedSafelyClick = () => {
+        setNotifyModalVisible(true);
+    };
+
+    const finishWalkAndClose = async () => {
+        setNotifyModalVisible(false);
         await clearActiveWalk();
         setActiveWalk(null);
         setRemainingTime("");
+    };
+
+    const handleNotifyContact = async (contact: TrustedContact) => {
+        const message = "I just arrived safely at my destination!";
+        const url = `sms:${contact.contactNumber}?body=${encodeURIComponent(message)}`;
+        
+        try {
+          await Linking.openURL(url);
+        } catch (e) {
+          console.error("Could not open SMS app", e);
+        }
+        
+        finishWalkAndClose();
     };
 
     return (
@@ -78,12 +99,20 @@ export default function HomeScreen() {
             <RouteMapPreview activeWalk={activeWalk} />
 
             {activeWalk ? (
-                <ActiveWalkCard
-                    activeWalk={activeWalk}
-                    remainingTime={remainingTime}
-                    arrivalTime={arrivalTime}
-                    onArrivedSafely={handleArrivedSafely}
-                />
+                <>
+                    <ActiveWalkCard
+                        activeWalk={activeWalk}
+                        remainingTime={remainingTime}
+                        arrivalTime={arrivalTime}
+                        onArrivedSafely={handleArrivedSafelyClick}
+                    />
+                    <NotifyContactModal
+                        visible={notifyModalVisible}
+                        onClose={() => setNotifyModalVisible(false)}
+                        onSelectContact={handleNotifyContact}
+                        onSkip={finishWalkAndClose}
+                    />
+                </>
             ) : (
                 <AppCard>
                     <Text style={styles.emptyTitle}>Ready when you are</Text>
@@ -95,6 +124,13 @@ export default function HomeScreen() {
                         style={styles.startButton}
                         onPress={() => router.push("/walk")}
                         icon={<Ionicons name="walk-outline" size={20} color={colors.text} />}
+                    />
+                    <PrimaryButton
+                        title="Mark as Safe"
+                        variant="secondary"
+                        style={styles.safeButton}
+                        onPress={() => alert("Your safe contacts have been notified that you are safe at home.")}
+                        icon={<Ionicons name="home-outline" size={20} color={colors.text} />}
                     />
                 </AppCard>
             )}
@@ -122,5 +158,8 @@ const styles = StyleSheet.create({
     },
     startButton: {
         marginTop: spacing.md,
+    },
+    safeButton: {
+        marginTop: spacing.sm,
     },
 });

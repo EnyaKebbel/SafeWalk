@@ -8,7 +8,9 @@ import {
     query,
     orderBy,
     updateDoc,
-    writeBatch
+    writeBatch,
+    getDocs,
+    limit
 } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 
@@ -44,6 +46,14 @@ export function listenToContacts(
 
         callback(contacts);
     });
+}
+
+export async function getTopPriorityContact(): Promise<TrustedContact | null> {
+    const q = query(collection(db, "contacts"), orderBy("order", "asc"), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const docSnap = snapshot.docs[0];
+    return { id: docSnap.id, ...(docSnap.data() as Omit<TrustedContact, "id">) };
 }
 
 export async function updateTrustedContact(
