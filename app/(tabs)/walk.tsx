@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { colors, spacing } from "../../src/constants/theme";
 import RouteSuggestionCard from "../../src/components/walk/RouteSuggestionCard";
 import WalkDestinationForm, {
@@ -21,7 +21,9 @@ import {
   RouteSuggestion,
   TransportMode,
 } from "../../src/services/routeService";
-import { startActiveWalk } from "../../src/services/walkService";
+import { ActiveWalk, clearActiveWalk, getActiveWalk, startActiveWalk } from "../../src/services/walkService";
+import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
+import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
 async function getCurrentPosition(): Promise<Coordinates> {
@@ -43,12 +45,59 @@ async function getCurrentPosition(): Promise<Coordinates> {
   }
 }
 
+function formatRemainingTime(endsAt: string) {
+    const remainingMs = new Date(endsAt).getTime() - Date.now();
+
+    if (remainingMs <= 0) {
+        return "Time is up";
+    }
+
+    const totalSeconds = Math.ceil(remainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 // Walk-Screen for destination, route time and starting a safe walk.
 export default function WalkScreen() {
-  const [routeSuggestion, setRouteSuggestion] =
-    useState<RouteSuggestion | null>(null);
+  const [routeSuggestion, setRouteSuggestion] = useState<RouteSuggestion | null>(null);
   const [suggestionError, setSuggestionError] = useState("");
   const [isEstimating, setIsEstimating] = useState(false);
+  
+  const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
+  const [remainingTime, setRemainingTime] = useState("");
+
+  const loadActiveWalk = useCallback(async () => {
+      const walk = await getActiveWalk();
+      setActiveWalk(walk);
+      setRemainingTime(walk ? formatRemainingTime(walk.endsAt) : "");
+  }, []);
+
+  useFocusEffect(
+      useCallback(() => {
+          loadActiveWalk();
+      }, [loadActiveWalk])
+  );
+
+  useEffect(() => {
+      if (!activeWalk) return;
+      const intervalId = setInterval(() => {
+          setRemainingTime(formatRemainingTime(activeWalk.endsAt));
+      }, 1000);
+      return () => clearInterval(intervalId);
+  }, [activeWalk]);
+
+  const arrivalTime = useMemo(() => {
+      if (!activeWalk) return "";
+      return new Date(activeWalk.endsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }, [activeWalk]);
+
+  const handleArrivedSafely = async () => {
+      await clearActiveWalk();
+      setActiveWalk(null);
+      setRemainingTime("");
+  };
 
   // Fragt OpenRouteService nach einer Gehzeit und uebernimmt sie als Vorschlag.
   const estimateRoute = async (
@@ -97,6 +146,26 @@ export default function WalkScreen() {
     router.replace("/");
   };
 
+  if (activeWalk) {
+    return (
+        <View style={styles.activeContainer}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Active Walk</Text>
+              <Text style={styles.subtitle}>
+                You are currently on your way to a safe destination.
+              </Text>
+            </View>
+            <RouteMapPreview activeWalk={activeWalk} />
+            <ActiveWalkCard
+                activeWalk={activeWalk}
+                remainingTime={remainingTime}
+                arrivalTime={arrivalTime}
+                onArrivedSafely={handleArrivedSafely}
+            />
+        </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -138,6 +207,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  activeContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.lg,
   },
   content: {
     padding: spacing.lg,
