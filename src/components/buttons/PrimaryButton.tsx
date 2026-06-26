@@ -1,14 +1,14 @@
 import React, { ReactNode } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleProp,
   StyleSheet,
   Text,
+  TouchableOpacity,
   ViewStyle,
 } from "react-native";
 import { colors, radius, spacing } from "../../constants/theme";
-import { triggerSelectionHaptic } from "../../services/hapticsService";
+import { triggerTestHaptic } from "../../services/hapticsService";
 
 type PrimaryButtonProps = {
   title: string;
@@ -31,13 +31,15 @@ export default function PrimaryButton({
   style,
 }: PrimaryButtonProps) {
   const isDisabled = disabled || loading;
+
+  // Gibt vor der eigentlichen Button-Aktion direkt haptisches Feedback.
   const handlePress = () => {
-    triggerSelectionHaptic();
+    triggerTestHaptic();
     onPress();
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       style={[
         styles.button,
         variant === "secondary" && styles.secondaryButton,
@@ -47,10 +49,11 @@ export default function PrimaryButton({
       ]}
       onPress={handlePress}
       disabled={isDisabled}
+      activeOpacity={0.8}
     >
       {loading ? <ActivityIndicator size="small" color={colors.text} /> : icon}
       <Text style={styles.buttonText}>{title}</Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

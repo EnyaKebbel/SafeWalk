@@ -11,6 +11,7 @@ import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
 import { ActiveWalk, clearActiveWalk, getActiveWalk } from "../../src/services/walkService";
 import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
 import { TrustedContact, getTopPriorityContact } from "../../src/services/contactService";
+import { triggerTestHaptic } from "../../src/services/hapticsService";
 
 function getRemainingMs(endsAt: string) {
     return new Date(endsAt).getTime() - Date.now();
@@ -116,6 +117,8 @@ export default function HomeScreen() {
     };
 
     const triggerPanic = async () => {
+        // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geoeffnet wird.
+        triggerTestHaptic();
         try {
             const topContact = await getTopPriorityContact();
             const phoneToCall = topContact ? topContact.contactNumber : "112";

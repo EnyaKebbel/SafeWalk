@@ -1,4 +1,10 @@
 {
+  "scheme": "safewalk",
+  "android": {
+    "permissions": [
+      "VIBRATE"
+    ]
+  },
   "plugins": [
     "expo-font",
     [

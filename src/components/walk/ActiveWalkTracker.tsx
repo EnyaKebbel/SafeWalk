@@ -8,6 +8,7 @@ import { ActiveWalk } from "../../services/walkService";
 import { geocodeAddress, getRoute, Coordinates, RouteData } from "../../services/mapService";
 import { getTopPriorityContact } from "../../services/contactService";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { triggerTestHaptic } from "../../services/hapticsService";
 
 type ActiveWalkTrackerProps = {
   activeWalk: ActiveWalk;
@@ -92,6 +93,8 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
   }, [activeWalk]);
 
   const triggerPanic = async () => {
+    // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geoeffnet wird.
+    triggerTestHaptic();
     try {
       const topContact = await getTopPriorityContact();
       const phoneToCall = topContact ? topContact.contactNumber : "112";

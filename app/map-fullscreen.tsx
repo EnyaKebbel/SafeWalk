@@ -12,7 +12,7 @@ import { geocodeAddress, getRoute, Coordinates, RouteData } from "../src/service
 import {
   triggerImpactHaptic,
   triggerSelectionHaptic,
-  triggerWarningHaptic,
+  triggerTestHaptic,
 } from "../src/services/hapticsService";
 
 type TransportMode = 'walk' | 'bike' | 'car';
@@ -163,7 +163,8 @@ export default function MapFullscreenScreen() {
   };
 
   const triggerPanic = () => {
-    triggerWarningHaptic();
+    // SOS gibt sofort haptisches Feedback, bevor der Warnhinweis erscheint.
+    triggerTestHaptic();
     Alert.alert("EMERGENCY", "Panic Button pressed! Contacting ONLY your configured Safe Contacts. Emergency Services (112) will NOT be called automatically due to legal reasons.", [
       { text: "Cancel", style: "cancel" },
       { text: "Alert Contacts", style: "destructive", onPress: () => console.log("Calling Safe Contacts!") }
