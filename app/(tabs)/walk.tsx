@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Linking,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { colors, spacing } from "../../src/constants/theme";
@@ -25,6 +26,8 @@ import { ActiveWalk, clearActiveWalk, getActiveWalk, startActiveWalk } from "../
 import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
 import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 import ActiveWalkTracker from "../../src/components/walk/ActiveWalkTracker";
+import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
+import { TrustedContact } from "../../src/services/contactService";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
 async function getCurrentPosition(): Promise<Coordinates> {

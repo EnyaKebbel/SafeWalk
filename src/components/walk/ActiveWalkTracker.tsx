@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, Alert, ActivityIndicator } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, Alert, ActivityIndicator, Linking } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "../../constants/theme";
 import { ActiveWalk } from "../../services/walkService";
 import { geocodeAddress, getRoute, Coordinates, RouteData } from "../../services/mapService";
+import { getTopPriorityContact } from "../../services/contactService";
 
 type ActiveWalkTrackerProps = {
   activeWalk: ActiveWalk;
@@ -89,15 +90,15 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
     };
   }, [activeWalk]);
 
-  const triggerPanic = () => {
-    Alert.alert(
-      "EMERGENCY",
-      "Panic Button pressed! Contacting ONLY your configured Safe Contacts. Emergency Services (112) will NOT be called automatically due to legal reasons.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Alert Contacts", style: "destructive", onPress: () => console.log("Calling Safe Contacts!") }
-      ]
-    );
+  const triggerPanic = async () => {
+    try {
+      const topContact = await getTopPriorityContact();
+      const phoneToCall = topContact ? topContact.contactNumber : "112";
+      await Linking.openURL(`tel:${phoneToCall}`);
+    } catch (err) {
+      console.error("Error opening dialer", err);
+      Alert.alert("Error", "Could not open the phone dialer.");
+    }
   };
 
   return (
@@ -144,9 +145,12 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
               <Text style={styles.endWalkText}>Arrived Safely</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.panicButton} onPress={triggerPanic}>
+            <TouchableOpacity 
+              style={styles.panicButton} 
+              onPress={triggerPanic}
+            >
               <Ionicons name="alert-circle" size={40} color="#FFF" />
-              <Text style={styles.panicText}>PANIC</Text>
+              <Text style={styles.panicText}>SOS</Text>
             </TouchableOpacity>
           </View>
         </>

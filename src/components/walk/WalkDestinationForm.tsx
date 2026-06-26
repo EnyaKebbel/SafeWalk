@@ -141,12 +141,8 @@ export default function WalkDestinationForm({
                 returnKeyType="done"
               />
               
-              {isTyping ? (
+              {isTyping && (
                 <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
-              ) : (
-                <TouchableOpacity onPress={() => router.push('/map-fullscreen')} style={styles.inlineMapButton}>
-                  <Ionicons name="map" size={22} color={colors.primary} />
-                </TouchableOpacity>
               )}
             </View>
             {touched.destination && errors.destination ? (
