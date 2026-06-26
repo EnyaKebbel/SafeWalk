@@ -88,7 +88,7 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <RouteMapPreview />
+            <RouteMapPreview activeWalk={activeWalk} />
 
             {activeWalk ? (
                 <ActiveWalkCard

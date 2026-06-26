@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,66 +7,103 @@ import {
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { colors, spacing } from "../../src/constants/theme";
 import RouteSuggestionCard from "../../src/components/walk/RouteSuggestionCard";
 import WalkDestinationForm, {
   WalkFormValues,
 } from "../../src/components/walk/WalkDestinationForm";
 import WalkSafetyNotice from "../../src/components/walk/WalkSafetyNotice";
+import * as Location from 'expo-location';
 import {
   Coordinates,
-  getWalkingRouteSuggestion,
+  getRouteSuggestion,
   RouteSuggestion,
+  TransportMode,
 } from "../../src/services/routeService";
-import { startActiveWalk } from "../../src/services/walkService";
+import { ActiveWalk, clearActiveWalk, getActiveWalk, startActiveWalk } from "../../src/services/walkService";
+import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
+import RouteMapPreview from "../../src/components/map/RouteMapPreview";
+import ActiveWalkTracker from "../../src/components/walk/ActiveWalkTracker";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
-function getCurrentPosition(): Promise<Coordinates> {
-  return new Promise((resolve, reject) => {
-    const geolocation = (navigator as any)?.geolocation;
+async function getCurrentPosition(): Promise<Coordinates> {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    throw new Error("Location access is needed for an automatic route estimate. You can still enter your own time.");
+  }
 
-    if (!geolocation) {
-      reject(
-        new Error(
-          "Location access is not available yet. You can still enter your own time."
-        )
-      );
-      return;
+  try {
+    const location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+    return {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    };
+  } catch (error) {
+    throw new Error("Could not fetch current location. Please ensure location services are enabled.");
+  }
+}
+
+function formatRemainingTime(endsAt: string) {
+    const remainingMs = new Date(endsAt).getTime() - Date.now();
+
+    if (remainingMs <= 0) {
+        return "Time is up";
     }
 
-    geolocation.getCurrentPosition(
-      (position: any) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      () =>
-        reject(
-          new Error(
-            "Location access is needed for an automatic route estimate."
-          )
-        ),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
-    );
-  });
+    const totalSeconds = Math.ceil(remainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 // Walk-Screen for destination, route time and starting a safe walk.
 export default function WalkScreen() {
-  const [routeSuggestion, setRouteSuggestion] =
-    useState<RouteSuggestion | null>(null);
+  const [routeSuggestion, setRouteSuggestion] = useState<RouteSuggestion | null>(null);
   const [suggestionError, setSuggestionError] = useState("");
   const [isEstimating, setIsEstimating] = useState(false);
+  
+  const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
+  const [remainingTime, setRemainingTime] = useState("");
+
+  const loadActiveWalk = useCallback(async () => {
+      const walk = await getActiveWalk();
+      setActiveWalk(walk);
+      setRemainingTime(walk ? formatRemainingTime(walk.endsAt) : "");
+  }, []);
+
+  useFocusEffect(
+      useCallback(() => {
+          loadActiveWalk();
+      }, [loadActiveWalk])
+  );
+
+  useEffect(() => {
+      if (!activeWalk) return;
+      const intervalId = setInterval(() => {
+          setRemainingTime(formatRemainingTime(activeWalk.endsAt));
+      }, 1000);
+      return () => clearInterval(intervalId);
+  }, [activeWalk]);
+
+  const arrivalTime = useMemo(() => {
+      if (!activeWalk) return "";
+      return new Date(activeWalk.endsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }, [activeWalk]);
+
+  const handleArrivedSafely = async () => {
+      await clearActiveWalk();
+      setActiveWalk(null);
+      setRemainingTime("");
+  };
 
   // Fragt OpenRouteService nach einer Gehzeit und uebernimmt sie als Vorschlag.
   const estimateRoute = async (
     destination: string,
+    mode: TransportMode,
     applySuggestion: (values: WalkFormValues) => void
   ) => {
     setIsEstimating(true);
@@ -74,9 +111,10 @@ export default function WalkScreen() {
 
     try {
       const origin = await getCurrentPosition();
-      const suggestion = await getWalkingRouteSuggestion(
+      const suggestion = await getRouteSuggestion(
         destination.trim(),
-        origin
+        origin,
+        mode
       );
 
       setRouteSuggestion(suggestion);
@@ -108,6 +146,15 @@ export default function WalkScreen() {
 
     router.replace("/");
   };
+
+  if (activeWalk) {
+    return (
+        <ActiveWalkTracker 
+            activeWalk={activeWalk}
+            onEndWalk={handleArrivedSafely}
+        />
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -150,6 +197,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  activeContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.lg,
   },
   content: {
     padding: spacing.lg,

@@ -1,7 +1,5 @@
 {
-  "scheme": "safewalk",
   "plugins": [
-    "expo-font",
-    "expo-notifications"
+    "expo-font"
   ]
 }

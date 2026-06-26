@@ -60,15 +60,23 @@ async function geocodeDestination(destination: string): Promise<{
     };
 }
 
-export async function getWalkingRouteSuggestion(
+export type TransportMode = 'walk' | 'bike' | 'car';
+
+export async function getRouteSuggestion(
     destination: string,
-    origin: Coordinates
+    origin: Coordinates,
+    mode: TransportMode = 'walk'
 ): Promise<RouteSuggestion> {
     const apiKey = requireApiKey();
     const resolvedDestination = await geocodeDestination(destination);
 
+    // Profil je nach Modus wählen
+    let profile = 'foot-walking';
+    if (mode === 'bike') profile = 'cycling-regular';
+    if (mode === 'car') profile = 'driving-car';
+
     // ORS erwartet Koordinaten als [longitude, latitude].
-    const response = await fetch(`${ORS_BASE_URL}/v2/directions/foot-walking`, {
+    const response = await fetch(`${ORS_BASE_URL}/v2/directions/${profile}`, {
         method: "POST",
         headers: {
             Authorization: apiKey,

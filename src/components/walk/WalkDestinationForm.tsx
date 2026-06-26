@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,12 +6,18 @@ import {
   Text,
   TextInput,
   View,
+  TouchableOpacity,
+  ScrollView,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import * as yup from "yup";
+import { router } from "expo-router";
 import { colors, radius, spacing } from "../../constants/theme";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { TransportMode } from "../../services/routeService";
+import { fetchAutocompleteSuggestions, AddressSuggestion } from "../../services/mapService";
 
 export type WalkFormValues = {
   destination: string;
@@ -25,6 +31,7 @@ type WalkDestinationFormProps = {
   onDestinationChange: () => void;
   onEstimateRoute: (
     destination: string,
+    mode: TransportMode,
     applySuggestion: (values: WalkFormValues) => void
   ) => void;
   onSubmit: (values: WalkFormValues) => void;
@@ -62,6 +69,30 @@ export default function WalkDestinationForm({
   onEstimateRoute,
   onSubmit,
 }: WalkDestinationFormProps) {
+  const [mode, setMode] = useState<TransportMode>('walk');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length >= 3) {
+        setIsTyping(true);
+        try {
+          const results = await fetchAutocompleteSuggestions(searchQuery);
+          setSuggestions(results);
+        } catch (e) {
+          setSuggestions([]);
+        }
+        setIsTyping(false);
+      } else {
+        setSuggestions([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   return (
     <Formik
       initialValues={{ destination: "", minutes: "" }}
@@ -80,8 +111,10 @@ export default function WalkDestinationForm({
         values,
       }) => (
         <View>
-          <View style={styles.formSection}>
-            <Text style={styles.label}>Destination</Text>
+          <View style={[styles.formSection, { zIndex: 10 }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.label}>Destination</Text>
+            </View>
             <View
               style={[
                 styles.inputRow,
@@ -99,6 +132,7 @@ export default function WalkDestinationForm({
                 onBlur={handleBlur("destination")}
                 onChangeText={(value) => {
                   handleChange("destination")(value);
+                  setSearchQuery(value);
                   onDestinationChange();
                 }}
                 placeholder="Where are you going?"
@@ -106,10 +140,63 @@ export default function WalkDestinationForm({
                 autoCapitalize="words"
                 returnKeyType="done"
               />
+              
+              {isTyping ? (
+                <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+              ) : (
+                <TouchableOpacity onPress={() => router.push('/map-fullscreen')} style={styles.inlineMapButton}>
+                  <Ionicons name="map" size={22} color={colors.primary} />
+                </TouchableOpacity>
+              )}
             </View>
             {touched.destination && errors.destination ? (
               <Text style={styles.errorText}>{errors.destination}</Text>
             ) : null}
+
+            {/* Autocomplete Dropdown */}
+            {suggestions.length > 0 && (
+              <View style={styles.dropdown}>
+                <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
+                  {suggestions.map((item, index) => (
+                    <TouchableOpacity 
+                      key={item.id} 
+                      style={[styles.suggestionItem, index < suggestions.length - 1 && styles.suggestionBorder]}
+                      onPress={() => {
+                        setFieldValue("destination", item.label);
+                        setSearchQuery(""); // Dropdown schließen
+                        setSuggestions([]);
+                        Keyboard.dismiss();
+                      }}
+                    >
+                      <Ionicons name="location-outline" size={18} color={colors.mutedText} style={{ marginRight: 10 }} />
+                      <Text style={styles.suggestionText} numberOfLines={2}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Transport Mode Selector */}
+            <View style={styles.modeSelector}>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'walk' && styles.modeButtonActive]} 
+                onPress={() => setMode('walk')}
+              >
+                <Ionicons name="walk" size={20} color={mode === 'walk' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'bike' && styles.modeButtonActive]} 
+                onPress={() => setMode('bike')}
+              >
+                <Ionicons name="bicycle" size={20} color={mode === 'bike' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'car' && styles.modeButtonActive]} 
+                onPress={() => setMode('car')}
+              >
+                <Ionicons name="car" size={20} color={mode === 'car' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.formSection}>
@@ -127,7 +214,7 @@ export default function WalkDestinationForm({
                     return;
                   }
 
-                  onEstimateRoute(values.destination, (suggestedValues) => {
+                  onEstimateRoute(values.destination, mode, (suggestedValues) => {
                     setFieldValue("destination", suggestedValues.destination);
                     setFieldValue("minutes", suggestedValues.minutes);
                   });
@@ -204,7 +291,64 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: "nunito-bold",
     fontSize: 16,
-    marginBottom: spacing.sm,
+    marginBottom: 0,
+  },
+  inlineMapButton: {
+    padding: 8,
+    marginRight: 4,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+  },
+  dropdown: {
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+    overflow: "hidden",
+    position: "absolute",
+    top: 95,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+  },
+  suggestionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: spacing.md,
+  },
+  suggestionBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
+  },
+  modeSelector: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    backgroundColor: colors.card,
+    borderRadius: radius.full,
+    marginTop: spacing.md,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  modeButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+  },
+  modeButtonActive: {
+    backgroundColor: colors.primary,
   },
   inputRow: {
     alignItems: "center",
