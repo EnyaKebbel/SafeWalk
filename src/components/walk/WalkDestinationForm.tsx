@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -7,6 +7,8 @@ import {
   TextInput,
   View,
   TouchableOpacity,
+  ScrollView,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
@@ -15,6 +17,7 @@ import { router } from "expo-router";
 import { colors, radius, spacing } from "../../constants/theme";
 import PrimaryButton from "../buttons/PrimaryButton";
 import { TransportMode } from "../../services/routeService";
+import { fetchAutocompleteSuggestions, AddressSuggestion } from "../../services/mapService";
 
 export type WalkFormValues = {
   destination: string;
@@ -67,6 +70,28 @@ export default function WalkDestinationForm({
   onSubmit,
 }: WalkDestinationFormProps) {
   const [mode, setMode] = useState<TransportMode>('walk');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length >= 3) {
+        setIsTyping(true);
+        try {
+          const results = await fetchAutocompleteSuggestions(searchQuery);
+          setSuggestions(results);
+        } catch (e) {
+          setSuggestions([]);
+        }
+        setIsTyping(false);
+      } else {
+        setSuggestions([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   return (
     <Formik
@@ -86,13 +111,9 @@ export default function WalkDestinationForm({
         values,
       }) => (
         <View>
-          <View style={styles.formSection}>
+          <View style={[styles.formSection, { zIndex: 10 }]}>
             <View style={styles.sectionHeader}>
               <Text style={styles.label}>Destination</Text>
-              <TouchableOpacity onPress={() => router.push('/map-fullscreen')} style={styles.mapButton}>
-                <Ionicons name="map" size={16} color={colors.primary} />
-                <Text style={styles.mapButtonText}>Interactive Map</Text>
-              </TouchableOpacity>
             </View>
             <View
               style={[
@@ -111,6 +132,7 @@ export default function WalkDestinationForm({
                 onBlur={handleBlur("destination")}
                 onChangeText={(value) => {
                   handleChange("destination")(value);
+                  setSearchQuery(value);
                   onDestinationChange();
                 }}
                 placeholder="Where are you going?"
@@ -118,10 +140,41 @@ export default function WalkDestinationForm({
                 autoCapitalize="words"
                 returnKeyType="done"
               />
+              
+              {isTyping ? (
+                <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+              ) : (
+                <TouchableOpacity onPress={() => router.push('/map-fullscreen')} style={styles.inlineMapButton}>
+                  <Ionicons name="map" size={22} color={colors.primary} />
+                </TouchableOpacity>
+              )}
             </View>
             {touched.destination && errors.destination ? (
               <Text style={styles.errorText}>{errors.destination}</Text>
             ) : null}
+
+            {/* Autocomplete Dropdown */}
+            {suggestions.length > 0 && (
+              <View style={styles.dropdown}>
+                <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
+                  {suggestions.map((item, index) => (
+                    <TouchableOpacity 
+                      key={item.id} 
+                      style={[styles.suggestionItem, index < suggestions.length - 1 && styles.suggestionBorder]}
+                      onPress={() => {
+                        setFieldValue("destination", item.label);
+                        setSearchQuery(""); // Dropdown schließen
+                        setSuggestions([]);
+                        Keyboard.dismiss();
+                      }}
+                    >
+                      <Ionicons name="location-outline" size={18} color={colors.mutedText} style={{ marginRight: 10 }} />
+                      <Text style={styles.suggestionText} numberOfLines={2}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             {/* Transport Mode Selector */}
             <View style={styles.modeSelector}>
@@ -240,21 +293,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 0,
   },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  inlineMapButton: {
+    padding: 8,
+    marginRight: 4,
     backgroundColor: colors.card,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.md,
   },
-  mapButtonText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 4,
+  dropdown: {
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+    overflow: "hidden",
+    position: "absolute",
+    top: 95,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+  },
+  suggestionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: spacing.md,
+  },
+  suggestionBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
   },
   modeSelector: {
     flexDirection: "row",
