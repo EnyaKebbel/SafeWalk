@@ -4,19 +4,7 @@
     "slug": "safewalk",
     "version": "1.0.0",
     "scheme": "safewalk",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "newArchEnabled": true,
-    "plugins": [
-      "expo-font",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location for walking navigation."
-        }
-      ]
-    ]
+    "platforms": ["ios", "android"],
+    "newArchEnabled": true
   }
 }

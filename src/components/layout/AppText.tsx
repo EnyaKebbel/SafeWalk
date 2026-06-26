@@ -14,6 +14,7 @@ export function AppText({ children, style }: AppTextProps) {
 const styles = StyleSheet.create({
     text: {
         color: colors.text,
+        fontFamily: "nunito-regular",
         fontSize: 16,
     },
 });
