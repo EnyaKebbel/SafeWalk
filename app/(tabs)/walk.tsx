@@ -153,6 +153,7 @@ export default function WalkScreen() {
       routeSuggestion: routeSuggestion ?? undefined,
     });
 
+    setRouteSuggestion(null); // Verhindert, dass die alte Zeit beim naechsten Walk angezeigt wird
     router.replace("/");
   };
 
@@ -213,22 +214,21 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   content: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   header: {
-    marginBottom: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
   },
   title: {
+    fontSize: 28,
+    fontWeight: "bold",
     color: colors.text,
-    fontFamily: "nunito-bold",
-    fontSize: 30,
   },
   subtitle: {
+    fontSize: 14,
     color: colors.mutedText,
-    fontFamily: "nunito-regular",
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
 });

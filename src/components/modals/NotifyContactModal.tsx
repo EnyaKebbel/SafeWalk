@@ -4,15 +4,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "../../constants/theme";
 import { listenToContacts, TrustedContact } from "../../services/contactService";
 
+import PrimaryButton from "../buttons/PrimaryButton";
+
 type NotifyContactModalProps = {
   visible: boolean;
   onClose: () => void;
-  onSelectContact: (contact: TrustedContact) => void;
+  onSelectContacts: (contacts: TrustedContact[]) => void;
   onSkip: () => void;
 };
 
-export default function NotifyContactModal({ visible, onClose, onSelectContact, onSkip }: NotifyContactModalProps) {
+export default function NotifyContactModal({ visible, onClose, onSelectContacts, onSkip }: NotifyContactModalProps) {
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,8 +26,26 @@ export default function NotifyContactModal({ visible, onClose, onSelectContact, 
         setLoading(false);
       });
       return () => unsubscribe();
+    } else {
+      // Zuruecksetzen, wenn Modal geschlossen wird
+      setSelectedIds(new Set());
     }
   }, [visible]);
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleNotifySelected = () => {
+    const selectedContacts = contacts.filter(c => c.id && selectedIds.has(c.id));
+    onSelectContacts(selectedContacts);
+  };
 
   return (
     <Modal
@@ -38,7 +59,7 @@ export default function NotifyContactModal({ visible, onClose, onSelectContact, 
           
           <View style={styles.header}>
             <Text style={styles.title}>You Arrived!</Text>
-            <Text style={styles.subtitle}>Do you want to notify a contact?</Text>
+            <Text style={styles.subtitle}>Who do you want to notify?</Text>
           </View>
 
           {loading ? (
@@ -50,21 +71,36 @@ export default function NotifyContactModal({ visible, onClose, onSelectContact, 
               data={contacts}
               keyExtractor={(item) => item.id!}
               style={styles.list}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.contactItem}
-                  onPress={() => onSelectContact(item)}
-                >
-                  <View style={styles.contactIcon}>
-                    <Ionicons name="person" size={20} color={colors.primary} />
-                  </View>
-                  <View style={styles.contactInfo}>
-                    <Text style={styles.contactName}>{item.name}</Text>
-                    <Text style={styles.contactNumber}>{item.contactNumber}</Text>
-                  </View>
-                  <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const isSelected = selectedIds.has(item.id!);
+                return (
+                  <TouchableOpacity 
+                    style={[styles.contactItem, isSelected && styles.contactItemActive]}
+                    onPress={() => toggleSelection(item.id!)}
+                  >
+                    <View style={styles.contactIcon}>
+                      <Ionicons name="person" size={20} color={isSelected ? colors.primary : colors.text} />
+                    </View>
+                    <View style={styles.contactInfo}>
+                      <Text style={styles.contactName}>{item.name}</Text>
+                      <Text style={styles.contactNumber}>{item.contactNumber}</Text>
+                    </View>
+                    <Ionicons 
+                      name={isSelected ? "checkbox" : "square-outline"} 
+                      size={24} 
+                      color={isSelected ? colors.primary : colors.mutedText} 
+                    />
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          )}
+
+          {contacts.length > 0 && (
+            <PrimaryButton 
+              title={`Notify Selected (${selectedIds.size})`} 
+              onPress={handleNotifySelected} 
+              disabled={selectedIds.size === 0}
             />
           )}
 

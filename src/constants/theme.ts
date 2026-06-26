@@ -4,7 +4,7 @@ export const colors = {
     card: '#161A24',
     primary: '#6D5EF7',
     secondary: '#1EC8C8',
-    danger: '#FF5A5F',
+    danger: '#b11212',
     text: '#FFFFFF',
     mutedText: '#9CA3AF',
     border: '#252A36',

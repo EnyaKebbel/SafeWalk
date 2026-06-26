@@ -1,17 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Linking, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
+import * as SMS from 'expo-sms';
 import { colors, spacing } from "../../src/constants/theme";
 import AppCard from "../../src/components/cards/AppCard";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
 import { ActiveWalk, clearActiveWalk, getActiveWalk } from "../../src/services/walkService";
+import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
+import { TrustedContact, getTopPriorityContact } from "../../src/services/contactService";
+
+function getRemainingMs(endsAt: string) {
+    return new Date(endsAt).getTime() - Date.now();
+}
 
 // Berechnet die Anzeige fuer den laufenden Timer aus der gespeicherten Endzeit.
 function formatRemainingTime(endsAt: string) {
-    const remainingMs = new Date(endsAt).getTime() - Date.now();
+    const remainingMs = getRemainingMs(endsAt);
 
     if (remainingMs <= 0) {
         return "Time is up";
@@ -28,6 +35,8 @@ function formatRemainingTime(endsAt: string) {
 export default function HomeScreen() {
     const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
     const [remainingTime, setRemainingTime] = useState("");
+    
+    const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
     // Laedt den aktiven Walk immer neu, wenn der Home Screen wieder sichtbar wird.
     const loadActiveWalk = useCallback(async () => {
@@ -66,11 +75,55 @@ export default function HomeScreen() {
         });
     }, [activeWalk]);
 
-    const handleArrivedSafely = async () => {
-        // Beendet den Walk lokal. Die spaetere Notfalllogik kann hier andocken.
+    const isExpiringSoon = useMemo(() => {
+        if (!activeWalk) {
+            return false;
+        }
+
+        const remainingMs = getRemainingMs(activeWalk.endsAt);
+        return remainingMs > 0 && remainingMs <= 60 * 1000;
+    }, [activeWalk, remainingTime]);
+
+    const handleArrivedSafelyClick = () => {
+        setNotifyModalVisible(true);
+    };
+
+    const finishWalkAndClose = async () => {
+        setNotifyModalVisible(false);
         await clearActiveWalk();
         setActiveWalk(null);
         setRemainingTime("");
+    };
+
+    const handleNotifyContact = async (contacts: TrustedContact[]) => {
+        const message = "I just arrived safely at my destination!";
+        const phoneNumbers = contacts.map(c => c.contactNumber);
+        
+        try {
+            const isAvailable = await SMS.isAvailableAsync();
+            if (isAvailable) {
+                await SMS.sendSMSAsync(phoneNumbers, message);
+            } else {
+                console.error("SMS is not available on this device");
+                // Fallback falls es ein Simulator ohne SMS-App ist
+                alert("SMS not available: " + phoneNumbers.join(", "));
+            }
+        } catch (e) {
+            console.error("Could not open SMS app", e);
+        }
+        
+        finishWalkAndClose();
+    };
+
+    const triggerPanic = async () => {
+        try {
+            const topContact = await getTopPriorityContact();
+            const phoneToCall = topContact ? topContact.contactNumber : "112";
+            await Linking.openURL(`tel:${phoneToCall}`);
+        } catch (err) {
+            console.error("Error opening dialer", err);
+            Alert.alert("Error", "Could not open the phone dialer.");
+        }
     };
 
     return (
@@ -82,7 +135,8 @@ export default function HomeScreen() {
                     activeWalk={activeWalk}
                     remainingTime={remainingTime}
                     arrivalTime={arrivalTime}
-                    onArrivedSafely={handleArrivedSafely}
+                    isExpiringSoon={isExpiringSoon}
+                    onArrivedSafely={handleArrivedSafelyClick}
                 />
             ) : (
                 <AppCard>
@@ -96,8 +150,32 @@ export default function HomeScreen() {
                         onPress={() => router.push("/walk")}
                         icon={<Ionicons name="walk-outline" size={20} color={colors.text} />}
                     />
+                    <PrimaryButton
+                        title="Mark as Safe"
+                        variant="secondary"
+                        style={{ marginTop: spacing.sm }}
+                        onPress={handleArrivedSafelyClick}
+                        icon={<Ionicons name="home-outline" size={20} color={colors.text} />}
+                    />
                 </AppCard>
             )}
+
+            <View style={styles.floatingPanicContainer}>
+                <TouchableOpacity 
+                    style={styles.panicButton} 
+                    onPress={triggerPanic}
+                >
+                    <Ionicons name="alert-circle" size={40} color="#FFF" />
+                    <Text style={styles.panicText}>SOS</Text>
+                </TouchableOpacity>
+            </View>
+
+            <NotifyContactModal
+                visible={notifyModalVisible}
+                onClose={() => setNotifyModalVisible(false)}
+                onSelectContacts={handleNotifyContact}
+                onSkip={finishWalkAndClose}
+            />
         </View>
     );
 }
@@ -123,4 +201,31 @@ const styles = StyleSheet.create({
     startButton: {
         marginTop: spacing.md,
     },
+    floatingPanicContainer: {
+        position: 'absolute',
+        bottom: spacing.xxl,
+        right: spacing.lg,
+        zIndex: 10,
+    },
+    panicButton: {
+        backgroundColor: colors.danger,
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: colors.danger,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.5,
+        shadowRadius: 12,
+        elevation: 8,
+        borderWidth: 4,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+    panicText: {
+        color: '#FFF',
+        fontWeight: 'bold',
+        fontSize: 14,
+        marginTop: 2,
+    }
 });

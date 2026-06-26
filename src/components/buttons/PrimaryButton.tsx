@@ -16,7 +16,7 @@ type PrimaryButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   icon?: ReactNode;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   style?: StyleProp<ViewStyle>;
 };
 
@@ -41,6 +41,7 @@ export default function PrimaryButton({
       style={[
         styles.button,
         variant === "secondary" && styles.secondaryButton,
+        variant === "danger" && styles.dangerButton,
         isDisabled && styles.disabledButton,
         style,
       ]}
@@ -66,6 +67,9 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: colors.secondary,
+  },
+  dangerButton: {
+    backgroundColor: colors.danger,
   },
   disabledButton: {
     opacity: 0.45,

@@ -48,13 +48,13 @@ const walkDetailsSchema = yup.object({
     .required("Expected time is required.")
     .test(
       "is-valid-arrival-time",
-      "Enter a time between 1 and 240 minutes.",
+      "Enter a time between 1 and 1440 minutes (24 hours).",
       (value) => {
         const parsedValue = Number((value ?? "").replace(",", "."));
         return (
           Number.isFinite(parsedValue) &&
           parsedValue >= 1 &&
-          parsedValue <= 240
+          parsedValue <= 1440
         );
       }
     ),
@@ -162,6 +162,7 @@ export default function WalkDestinationForm({
                         setSearchQuery(""); // Dropdown schließen
                         setSuggestions([]);
                         Keyboard.dismiss();
+                        onDestinationChange();
                       }}
                     >
                       <Ionicons name="location-outline" size={18} color={colors.mutedText} style={{ marginRight: 10 }} />
@@ -176,19 +177,19 @@ export default function WalkDestinationForm({
             <View style={styles.modeSelector}>
               <TouchableOpacity 
                 style={[styles.modeButton, mode === 'walk' && styles.modeButtonActive]} 
-                onPress={() => setMode('walk')}
+                onPress={() => { setMode('walk'); onDestinationChange(); }}
               >
                 <Ionicons name="walk" size={20} color={mode === 'walk' ? '#FFF' : colors.text} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modeButton, mode === 'bike' && styles.modeButtonActive]} 
-                onPress={() => setMode('bike')}
+                onPress={() => { setMode('bike'); onDestinationChange(); }}
               >
                 <Ionicons name="bicycle" size={20} color={mode === 'bike' ? '#FFF' : colors.text} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modeButton, mode === 'car' && styles.modeButtonActive]} 
-                onPress={() => setMode('car')}
+                onPress={() => { setMode('car'); onDestinationChange(); }}
               >
                 <Ionicons name="car" size={20} color={mode === 'car' ? '#FFF' : colors.text} />
               </TouchableOpacity>
@@ -259,7 +260,7 @@ export default function WalkDestinationForm({
             </Text>
           </View>
 
-          {children}
+          {values.destination.trim() ? children : null}
 
           <PrimaryButton
             title="Start Walk"
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignSelf: "flex-start",
     backgroundColor: colors.card,
-    borderRadius: radius.full,
+    borderRadius: radius.sm,
     marginTop: spacing.md,
     padding: 4,
     shadowColor: "#000",
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   modeButton: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: radius.full,
+    borderRadius: radius.sm - 2, // Inner elements look better with slightly smaller radius
   },
   modeButtonActive: {
     backgroundColor: colors.primary,

@@ -7,6 +7,7 @@ import { colors, radius, spacing } from "../../constants/theme";
 import { ActiveWalk } from "../../services/walkService";
 import { geocodeAddress, getRoute, Coordinates, RouteData } from "../../services/mapService";
 import { getTopPriorityContact } from "../../services/contactService";
+import PrimaryButton from "../buttons/PrimaryButton";
 
 type ActiveWalkTrackerProps = {
   activeWalk: ActiveWalk;
@@ -140,10 +141,14 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
           </MapView>
 
           <View style={styles.overlay}>
-            <TouchableOpacity style={styles.endWalkButton} onPress={onEndWalk}>
-              <Ionicons name="checkmark-circle" size={24} color={colors.text} />
-              <Text style={styles.endWalkText}>Arrived Safely</Text>
-            </TouchableOpacity>
+            <View style={{ flex: 1, marginRight: spacing.md, marginBottom: 15 }}>
+                <PrimaryButton
+                    title="Arrived Safely"
+                    variant="secondary"
+                    onPress={onEndWalk}
+                    icon={<Ionicons name="checkmark-circle-outline" size={20} color={colors.text} />}
+                />
+            </View>
 
             <TouchableOpacity 
               style={styles.panicButton} 
