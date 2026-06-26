@@ -1,81 +1,61 @@
-# SafeWalk 🛡️
+# SafeWalk
 
-SafeWalk ist ein studentisches App-Projekt, das entwickelt wurde, um den abendlichen Heimweg sicherer zu gestalten. Die App ermöglicht es Benutzern, ihre Route und eine voraussichtliche Ankunftszeit (ETA) festzulegen. Vertrauenswürdige Notfallkontakte können hinterlegt werden, die bei Ablauf der Zeit oder beim Auslösen des SOS-Buttons automatisch kontaktiert werden.
+SafeWalk ist eine App, die wir für ein Projekt im Studium entwickelt haben. Die Idee dahinter ist, dass man abends sicherer nach Hause kommt. Man kann seine Route auf einer Karte planen und die App schätzt, wie lange man braucht. Wenn man nach Ablauf der Zeit nicht bestätigt hat, dass man sicher angekommen ist, ruft die App automatisch einen Notfallkontakt an. 
 
-## 🚀 Funktionen
-- **Live-Tracking & Routenberechnung:** Integrierte Map zur Berechnung der voraussichtlichen Ankunftszeit für Fußgänger, Rad- und Autofahrer.
-- **Aktiver Walk-Modus:** Übersichtliches Interface mit Live-Countdown und SOS-Schnellzugriff.
-- **Notfallkontakte:** Verwalte vertrauenswürdige Kontakte mit individuellen Prioritäten.
-- **Automatischer Notruf:** Läuft der Timer ab, ohne dass die Ankunft bestätigt wurde, ruft die App automatisch den primären Notfallkontakt (oder 112) an.
-- **"Arrived Safely" SMS:** Mit nur einem Klick können Kontakte per vorausgefüllter SMS über die sichere Ankunft informiert werden.
+## Funktionen
+- Karte mit Routenberechnung für Fußgänger, Fahrrad und Auto
+- Live-Ansicht für den aktuellen Weg nach Hause
+- SOS-Button, um schnell Hilfe zu rufen
+- Liste für eigene Notfallkontakte
+- Automatischer Anruf beim ersten Kontakt auf der Liste, wenn die Zeit abläuft
+- SMS-Funktion, um mit einem Klick Bescheid zu geben, dass man da ist
 
----
+## Was man braucht
+Damit man die App auf dem eigenen PC bearbeiten und starten kann, braucht man ein paar Programme:
+- Node.js
+- Git
+- Die kostenlose App "Expo Go" auf dem Handy (gibt es im Apple App Store und Google Play Store)
 
-## 🛠️ Voraussetzungen
-
-Um die App lokal auszuführen, müssen folgende Tools auf deinem System installiert sein:
-
-1. **Node.js** (Empfohlene LTS-Version): [https://nodejs.org/](https://nodejs.org/)
-2. **Git** (zum Klonen des Repositories): [https://git-scm.com/](https://git-scm.com/)
-3. **Expo Go App**: Installiere dir die App "Expo Go" auf deinem [iOS (App Store)](https://apps.apple.com/app/expo-go/id982107779) oder [Android (Play Store)](https://play.google.com/store/apps/details?id=host.exp.exponent) Smartphone, um die App physisch testen zu können.
-
----
-
-## 💻 Installation & Inbetriebnahme
-
-### 1. Repository klonen
-Klone das GitHub-Repository auf deinen lokalen Rechner und navigiere in das Verzeichnis:
+## Installation und Start
+1. Zuerst lädt man sich den Code runter:
 ```bash
 git clone https://github.com/EnyaKebbel/SafeWalk.git
 cd SafeWalk
 ```
 
-### 2. Abhängigkeiten (Dependencies) installieren
-Installiere alle benötigten Bibliotheken und Module mit npm:
+2. Dann installiert man die ganzen Pakete mit npm:
 ```bash
 npm install
 ```
 
-### 3. Umgebungsvariablen (.env) konfigurieren
-Die App benötigt verschiedene API-Keys für Firebase (Datenbank) und OpenRouteService (Map-Routing), um korrekt zu funktionieren. 
-Erstelle im Hauptverzeichnis des Projekts (neben der `package.json`) eine Datei namens `.env` und füge deine Keys dort nach folgendem Muster ein:
+3. Wichtig: Die App braucht API-Keys, sonst funktionieren die Karte und die Datenbank nicht.
+Dafür muss man im Hauptordner eine Datei erstellen, die einfach nur `.env` heißt. In diese Datei kopiert man Folgendes rein und trägt seine eigenen Keys ein:
 
 ```env
-# OpenRouteService API
-EXPO_PUBLIC_OPENROUTESERVICE_API_KEY="DEIN_ORS_API_KEY_HIER"
+EXPO_PUBLIC_OPENROUTESERVICE_API_KEY="HIER_DER_ORS_KEY"
 
-# Firebase Config
-EXPO_PUBLIC_FIREBASE_API_KEY="DEIN_FIREBASE_API_KEY_HIER"
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN="DEIN_FIREBASE_AUTH_DOMAIN_HIER"
-EXPO_PUBLIC_FIREBASE_PROJECT_ID="DEIN_FIREBASE_PROJECT_ID_HIER"
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET="DEIN_FIREBASE_STORAGE_BUCKET_HIER"
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="DEIN_FIREBASE_MESSAGING_SENDER_ID_HIER"
-EXPO_PUBLIC_FIREBASE_APP_ID="DEIN_FIREBASE_APP_ID_HIER"
+EXPO_PUBLIC_FIREBASE_API_KEY="HIER_DER_FIREBASE_KEY"
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN="HIER_DIE_DOMAIN"
+EXPO_PUBLIC_FIREBASE_PROJECT_ID="HIER_DIE_ID"
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET="HIER_DER_BUCKET"
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="HIER_DIE_SENDER_ID"
+EXPO_PUBLIC_FIREBASE_APP_ID="HIER_DIE_APP_ID"
 ```
-*(Hinweis: Diese Datei wird durch `.gitignore` absichtlich nicht bei GitHub hochgeladen, um deine Passwörter zu schützen.)*
+(Die echten Keys können wir aus Sicherheitsgründen hier nicht hochladen.)
 
-### 4. App starten (Development Server)
-Starte den Expo-Entwicklungsserver (Metro Bundler) mit dem folgenden Befehl:
+4. App starten:
+Um die App laufen zu lassen, gibt man das im Terminal ein:
 ```bash
 npm run dev
-# Alternativ: npx expo start -c (um sicherzustellen, dass der Cache geleert ist)
 ```
 
-### 5. Auf dem Smartphone ausführen
-Sobald der Server läuft, erscheint in deinem Terminal ein großer **QR-Code**.
-- **iOS:** Öffne die Standard-Kamera-App deines iPhones und scanne den QR-Code. Tippe auf die Benachrichtigung "In Expo Go öffnen".
-- **Android:** Öffne die "Expo Go" App auf deinem Smartphone und nutze die integrierte "Scan QR Code"-Funktion.
+5. Auf dem Handy testen:
+Im Terminal taucht dann ein QR-Code auf. Den scannt man einfach mit der normalen Handykamera (bei iOS) oder direkt in der Expo Go App (bei Android). Danach öffnet sich die App auf dem Handy und man kann sie ausprobieren.
 
-Die App wird nun gebündelt und live auf deinem Smartphone ausgeführt! Alle Änderungen, die du ab jetzt im Code vornimmst, werden (dank Hot Reloading) in Echtzeit auf das Smartphone übertragen.
+## Verwendete Sachen
+- React Native und Expo
+- Firebase für die Datenbank
+- OpenRouteService für die Map
+- Expo Router
 
----
-
-## 🎨 Verwendete Technologien
-- **React Native** & **Expo** (Framework & Laufzeitumgebung)
-- **Expo Router** (Dateibasiertes Routing für Navigation)
-- **Firebase** (Backend für Datenspeicherung)
-- **React Native Maps** & **OpenRouteService API** (Kartendarstellung & Routenberechnung)
-- **Expo Location & Expo SMS** (Zugriff auf Smartphone-Hardware-Funktionen)
-
----
-*Entwickelt im Rahmen eines studentischen Projekts.*
+Entwickelt von Enni und Vanessa.
