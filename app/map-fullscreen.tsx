@@ -9,6 +9,11 @@ import { colors, radius, spacing } from "../src/constants/theme";
 import AddressSearch from "../src/components/walk/AddressSearch";
 import RouteInfoCard from "../src/components/walk/RouteInfoCard";
 import { geocodeAddress, getRoute, Coordinates, RouteData } from "../src/services/mapService";
+import {
+  triggerImpactHaptic,
+  triggerSelectionHaptic,
+  triggerWarningHaptic,
+} from "../src/services/hapticsService";
 
 type TransportMode = 'walk' | 'bike' | 'car';
 
@@ -113,6 +118,7 @@ export default function MapFullscreenScreen() {
 
   // Wenn der Modus (Walk/Bike/Car) gewechselt wird und es schon ein Ziel gibt, Route neu berechnen
   const changeMode = async (newMode: TransportMode) => {
+    triggerSelectionHaptic();
     setMode(newMode);
     if (destination && currentLocation) {
       setIsLoading(true);
@@ -128,6 +134,7 @@ export default function MapFullscreenScreen() {
   };
 
   const startWalk = () => {
+    triggerImpactHaptic();
     setIsActiveWalk(true);
     if (mapRef.current && currentLocation) {
       mapRef.current.animateCamera({
@@ -140,6 +147,7 @@ export default function MapFullscreenScreen() {
   };
 
   const stopWalk = () => {
+    triggerSelectionHaptic();
     setIsActiveWalk(false);
     setRoute(null);
     setDestination(null);
@@ -155,6 +163,7 @@ export default function MapFullscreenScreen() {
   };
 
   const triggerPanic = () => {
+    triggerWarningHaptic();
     Alert.alert("EMERGENCY", "Panic Button pressed! Contacting ONLY your configured Safe Contacts. Emergency Services (112) will NOT be called automatically due to legal reasons.", [
       { text: "Cancel", style: "cancel" },
       { text: "Alert Contacts", style: "destructive", onPress: () => console.log("Calling Safe Contacts!") }

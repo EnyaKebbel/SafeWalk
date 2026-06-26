@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { colors, radius, spacing } from "../../constants/theme";
+import { triggerSelectionHaptic } from "../../services/hapticsService";
 
 type PrimaryButtonProps = {
   title: string;
@@ -30,6 +31,10 @@ export default function PrimaryButton({
   style,
 }: PrimaryButtonProps) {
   const isDisabled = disabled || loading;
+  const handlePress = () => {
+    triggerSelectionHaptic();
+    onPress();
+  };
 
   return (
     <Pressable
@@ -39,7 +44,7 @@ export default function PrimaryButton({
         isDisabled && styles.disabledButton,
         style,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
     >
       {loading ? <ActivityIndicator size="small" color={colors.text} /> : icon}

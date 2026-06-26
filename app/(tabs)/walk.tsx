@@ -28,6 +28,10 @@ import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 import ActiveWalkTracker from "../../src/components/walk/ActiveWalkTracker";
 import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
 import { TrustedContact } from "../../src/services/contactService";
+import {
+  triggerImpactHaptic,
+  triggerSuccessHaptic,
+} from "../../src/services/hapticsService";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
 async function getCurrentPosition(): Promise<Coordinates> {
@@ -98,6 +102,7 @@ export default function WalkScreen() {
   }, [activeWalk]);
 
   const handleArrivedSafely = async () => {
+      triggerSuccessHaptic();
       await clearActiveWalk();
       setActiveWalk(null);
       setRemainingTime("");
@@ -140,6 +145,7 @@ export default function WalkScreen() {
   // Speichert den aktiven Walk mit Endzeit und bringt den User zurueck zum Home Screen.
   const handleStartWalk = async (values: WalkFormValues) => {
     const parsedMinutes = Math.ceil(Number(values.minutes.replace(",", ".")));
+    triggerImpactHaptic();
 
     await startActiveWalk({
       destination: values.destination.trim(),
