@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,12 +6,15 @@ import {
   Text,
   TextInput,
   View,
+  TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import * as yup from "yup";
+import { router } from "expo-router";
 import { colors, radius, spacing } from "../../constants/theme";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { TransportMode } from "../../services/routeService";
 
 export type WalkFormValues = {
   destination: string;
@@ -25,6 +28,7 @@ type WalkDestinationFormProps = {
   onDestinationChange: () => void;
   onEstimateRoute: (
     destination: string,
+    mode: TransportMode,
     applySuggestion: (values: WalkFormValues) => void
   ) => void;
   onSubmit: (values: WalkFormValues) => void;
@@ -62,6 +66,8 @@ export default function WalkDestinationForm({
   onEstimateRoute,
   onSubmit,
 }: WalkDestinationFormProps) {
+  const [mode, setMode] = useState<TransportMode>('walk');
+
   return (
     <Formik
       initialValues={{ destination: "", minutes: "" }}
@@ -81,7 +87,13 @@ export default function WalkDestinationForm({
       }) => (
         <View>
           <View style={styles.formSection}>
-            <Text style={styles.label}>Destination</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.label}>Destination</Text>
+              <TouchableOpacity onPress={() => router.push('/map-fullscreen')} style={styles.mapButton}>
+                <Ionicons name="map" size={16} color={colors.primary} />
+                <Text style={styles.mapButtonText}>Interactive Map</Text>
+              </TouchableOpacity>
+            </View>
             <View
               style={[
                 styles.inputRow,
@@ -110,6 +122,28 @@ export default function WalkDestinationForm({
             {touched.destination && errors.destination ? (
               <Text style={styles.errorText}>{errors.destination}</Text>
             ) : null}
+
+            {/* Transport Mode Selector */}
+            <View style={styles.modeSelector}>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'walk' && styles.modeButtonActive]} 
+                onPress={() => setMode('walk')}
+              >
+                <Ionicons name="walk" size={20} color={mode === 'walk' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'bike' && styles.modeButtonActive]} 
+                onPress={() => setMode('bike')}
+              >
+                <Ionicons name="bicycle" size={20} color={mode === 'bike' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modeButton, mode === 'car' && styles.modeButtonActive]} 
+                onPress={() => setMode('car')}
+              >
+                <Ionicons name="car" size={20} color={mode === 'car' ? '#FFF' : colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.formSection}>
@@ -127,7 +161,7 @@ export default function WalkDestinationForm({
                     return;
                   }
 
-                  onEstimateRoute(values.destination, (suggestedValues) => {
+                  onEstimateRoute(values.destination, mode, (suggestedValues) => {
                     setFieldValue("destination", suggestedValues.destination);
                     setFieldValue("minutes", suggestedValues.minutes);
                   });
@@ -204,7 +238,44 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: "nunito-bold",
     fontSize: 16,
-    marginBottom: spacing.sm,
+    marginBottom: 0,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mapButtonText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  modeSelector: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    backgroundColor: colors.card,
+    borderRadius: radius.full,
+    marginTop: spacing.md,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  modeButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+  },
+  modeButtonActive: {
+    backgroundColor: colors.primary,
   },
   inputRow: {
     alignItems: "center",

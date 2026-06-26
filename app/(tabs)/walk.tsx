@@ -16,8 +16,9 @@ import WalkDestinationForm, {
 import WalkSafetyNotice from "../../src/components/walk/WalkSafetyNotice";
 import {
   Coordinates,
-  getWalkingRouteSuggestion,
+  getRouteSuggestion,
   RouteSuggestion,
+  TransportMode,
 } from "../../src/services/routeService";
 import { startActiveWalk } from "../../src/services/walkService";
 
@@ -67,6 +68,7 @@ export default function WalkScreen() {
   // Fragt OpenRouteService nach einer Gehzeit und uebernimmt sie als Vorschlag.
   const estimateRoute = async (
     destination: string,
+    mode: TransportMode,
     applySuggestion: (values: WalkFormValues) => void
   ) => {
     setIsEstimating(true);
@@ -74,9 +76,10 @@ export default function WalkScreen() {
 
     try {
       const origin = await getCurrentPosition();
-      const suggestion = await getWalkingRouteSuggestion(
+      const suggestion = await getRouteSuggestion(
         destination.trim(),
-        origin
+        origin,
+        mode
       );
 
       setRouteSuggestion(suggestion);
