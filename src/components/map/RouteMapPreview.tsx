@@ -55,7 +55,13 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
     <TouchableOpacity 
       style={styles.mapPreviewCard}
       activeOpacity={0.9}
-      onPress={() => router.push('/map-fullscreen')}
+      onPress={() => {
+        if (activeWalk) {
+          router.push('/walk');
+        } else {
+          router.push('/map-fullscreen');
+        }
+      }}
     >
       <View style={styles.placeholderMap}>
         {!currentLocation ? (
