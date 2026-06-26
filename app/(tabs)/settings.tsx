@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colors, spacing } from "../../src/constants/theme";
 import SettingsItem from "../../src/components/settings/SettingsItem";
-
-const NOTIFICATION_STORAGE_KEY = "@settings_notifications_enabled";
+import {
+  getNotificationsEnabled,
+  setNotificationsEnabled as saveNotificationsEnabled,
+} from "../../src/services/settingsService";
+import {
+  getActiveWalk,
+  updateActiveWalkReminderNotificationId,
+} from "../../src/services/walkService";
+import { cancelWalkReminderNotification } from "../../src/services/notificationService";
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -14,10 +20,7 @@ export default function SettingsScreen() {
     // Beim Starten der Seite laden wir den gespeicherten Zustand
     const loadSettings = async () => {
       try {
-        const savedState = await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY);
-        if (savedState !== null) {
-          setNotificationsEnabled(savedState === "true");
-        }
+        setNotificationsEnabled(await getNotificationsEnabled());
       } catch (error) {
         console.error("Fehler beim Laden der Einstellungen:", error);
       }
@@ -30,7 +33,16 @@ export default function SettingsScreen() {
     setNotificationsEnabled(value);
     try {
       // Speichere die neue Einstellung sofort lokal auf dem Handy
-      await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, value.toString());
+      await saveNotificationsEnabled(value);
+      if (!value) {
+        const activeWalk = await getActiveWalk();
+        await cancelWalkReminderNotification(
+          activeWalk?.reminderNotificationId ?? undefined
+        );
+        if (activeWalk?.reminderNotificationId) {
+          await updateActiveWalkReminderNotificationId(null);
+        }
+      }
     } catch (error) {
       console.error("Fehler beim Speichern der Einstellungen:", error);
     }

@@ -10,6 +10,7 @@ type ActiveWalkCardProps = {
   activeWalk: ActiveWalk;
   remainingTime: string;
   arrivalTime: string;
+  isExpiringSoon: boolean;
   onArrivedSafely: () => void;
 };
 
@@ -18,6 +19,7 @@ export default function ActiveWalkCard({
   activeWalk,
   remainingTime,
   arrivalTime,
+  isExpiringSoon,
   onArrivedSafely,
 }: ActiveWalkCardProps) {
   return (
@@ -29,7 +31,12 @@ export default function ActiveWalkCard({
             {activeWalk.destination}
           </Text>
         </View>
-        <View style={styles.timerBadge}>
+        <View
+          style={[
+            styles.timerBadge,
+            isExpiringSoon && styles.timerBadgeExpiring,
+          ]}
+        >
           <Ionicons name="time-outline" size={18} color={colors.text} />
           <Text style={styles.timerText}>{remainingTime}</Text>
         </View>
@@ -40,6 +47,11 @@ export default function ActiveWalkCard({
         {activeWalk.routeSuggestion ? (
           <Text style={styles.metaText}>
             {activeWalk.routeSuggestion.distanceKm} km route
+          </Text>
+        ) : null}
+        {isExpiringSoon ? (
+          <Text style={styles.expiringText}>
+            Please confirm your walk status soon.
           </Text>
         ) : null}
       </View>
@@ -89,6 +101,9 @@ const styles = StyleSheet.create({
     height: 42,
     paddingHorizontal: spacing.md,
   },
+  timerBadgeExpiring: {
+    backgroundColor: colors.danger,
+  },
   timerText: {
     color: colors.text,
     fontFamily: "nunito-bold",
@@ -104,6 +119,11 @@ const styles = StyleSheet.create({
   metaText: {
     color: colors.mutedText,
     fontFamily: "nunito-regular",
+    fontSize: 14,
+  },
+  expiringText: {
+    color: colors.text,
+    fontFamily: "nunito-bold",
     fontSize: 14,
   },
   safeButton: {

@@ -11,7 +11,7 @@ import { ActiveWalk, clearActiveWalk, getActiveWalk } from "../../src/services/w
 
 // Berechnet die Anzeige fuer den laufenden Timer aus der gespeicherten Endzeit.
 function formatRemainingTime(endsAt: string) {
-    const remainingMs = new Date(endsAt).getTime() - Date.now();
+    const remainingMs = getRemainingMs(endsAt);
 
     if (remainingMs <= 0) {
         return "Time is up";
@@ -22,6 +22,10 @@ function formatRemainingTime(endsAt: string) {
     const seconds = totalSeconds % 60;
 
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getRemainingMs(endsAt: string) {
+    return new Date(endsAt).getTime() - Date.now();
 }
 
 // Home screen as central entry point for map, active route and quick actions.
@@ -66,6 +70,15 @@ export default function HomeScreen() {
         });
     }, [activeWalk]);
 
+    const isExpiringSoon = useMemo(() => {
+        if (!activeWalk) {
+            return false;
+        }
+
+        const remainingMs = getRemainingMs(activeWalk.endsAt);
+        return remainingMs > 0 && remainingMs <= 60 * 1000;
+    }, [activeWalk, remainingTime]);
+
     const handleArrivedSafely = async () => {
         // Beendet den Walk lokal. Die spaetere Notfalllogik kann hier andocken.
         await clearActiveWalk();
@@ -82,6 +95,7 @@ export default function HomeScreen() {
                     activeWalk={activeWalk}
                     remainingTime={remainingTime}
                     arrivalTime={arrivalTime}
+                    isExpiringSoon={isExpiringSoon}
                     onArrivedSafely={handleArrivedSafely}
                 />
             ) : (

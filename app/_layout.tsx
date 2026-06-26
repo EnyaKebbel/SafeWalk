@@ -1,11 +1,15 @@
 
 import { Stack } from "expo-router";
+import { router } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { colors } from "../src/constants/theme";
+import * as Notifications from "expo-notifications";
+import { configureNotificationPresentation } from "../src/services/notificationService";
 
 SplashScreen.preventAutoHideAsync()
+configureNotificationPresentation();
 
 // Root-Layout fuer die gesamte App und die gemeinsame Navigation.
 export default function RootLayout() {
@@ -20,6 +24,20 @@ export default function RootLayout() {
             SplashScreen.hideAsync();
         }
     }, [loaded, error]);
+
+    useEffect(() => {
+        const subscription =
+            Notifications.addNotificationResponseReceivedListener((response) => {
+                if (
+                    response.notification.request.content.data?.type ===
+                    "walk-reminder"
+                ) {
+                    router.replace("/");
+                }
+            });
+
+        return () => subscription.remove();
+    }, []);
 
     if (!loaded && !error) {
         return null;
