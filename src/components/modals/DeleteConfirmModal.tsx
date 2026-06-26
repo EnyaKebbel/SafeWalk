@@ -24,17 +24,17 @@ export default function DeleteConfirmModal({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Kontakt löschen?</Text>
+          <Text style={styles.modalTitle}>Delete contact?</Text>
           <Text style={styles.deleteWarningText}>
-            Bist du sicher, dass du {contactName} entfernen möchtest?
+            Are you sure you want to remove {contactName}?
           </Text>
           
           <View style={styles.modalActions}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Abbrechen</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.danger }]} onPress={onConfirm}>
-              <Text style={styles.saveButtonText}>Löschen</Text>
+              <Text style={styles.saveButtonText}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
