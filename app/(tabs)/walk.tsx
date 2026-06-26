@@ -24,6 +24,7 @@ import {
 import { ActiveWalk, clearActiveWalk, getActiveWalk, startActiveWalk } from "../../src/services/walkService";
 import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
 import RouteMapPreview from "../../src/components/map/RouteMapPreview";
+import ActiveWalkTracker from "../../src/components/walk/ActiveWalkTracker";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
 async function getCurrentPosition(): Promise<Coordinates> {
@@ -148,21 +149,10 @@ export default function WalkScreen() {
 
   if (activeWalk) {
     return (
-        <View style={styles.activeContainer}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Active Walk</Text>
-              <Text style={styles.subtitle}>
-                You are currently on your way to a safe destination.
-              </Text>
-            </View>
-            <RouteMapPreview activeWalk={activeWalk} />
-            <ActiveWalkCard
-                activeWalk={activeWalk}
-                remainingTime={remainingTime}
-                arrivalTime={arrivalTime}
-                onArrivedSafely={handleArrivedSafely}
-            />
-        </View>
+        <ActiveWalkTracker 
+            activeWalk={activeWalk}
+            onEndWalk={handleArrivedSafely}
+        />
     );
   }
 
