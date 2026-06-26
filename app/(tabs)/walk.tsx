@@ -14,6 +14,7 @@ import WalkDestinationForm, {
   WalkFormValues,
 } from "../../src/components/walk/WalkDestinationForm";
 import WalkSafetyNotice from "../../src/components/walk/WalkSafetyNotice";
+import * as Location from 'expo-location';
 import {
   Coordinates,
   getRouteSuggestion,
@@ -23,39 +24,23 @@ import {
 import { startActiveWalk } from "../../src/services/walkService";
 
 // Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
-function getCurrentPosition(): Promise<Coordinates> {
-  return new Promise((resolve, reject) => {
-    const geolocation = (navigator as any)?.geolocation;
+async function getCurrentPosition(): Promise<Coordinates> {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    throw new Error("Location access is needed for an automatic route estimate. You can still enter your own time.");
+  }
 
-    if (!geolocation) {
-      reject(
-        new Error(
-          "Location access is not available yet. You can still enter your own time."
-        )
-      );
-      return;
-    }
-
-    geolocation.getCurrentPosition(
-      (position: any) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      () =>
-        reject(
-          new Error(
-            "Location access is needed for an automatic route estimate."
-          )
-        ),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
-    );
-  });
+  try {
+    const location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+    return {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    };
+  } catch (error) {
+    throw new Error("Could not fetch current location. Please ensure location services are enabled.");
+  }
 }
 
 // Walk-Screen for destination, route time and starting a safe walk.
