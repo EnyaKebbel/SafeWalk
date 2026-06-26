@@ -1,45 +1,64 @@
 import React from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing } from "../../constants/theme";
-import AppCard from "../cards/AppCard";
+import { router } from "expo-router";
+import { colors, radius, spacing } from "../../constants/theme";
 
-// Platzhalter fuer die spaetere Karten- und Routenintegration.
 export default function RouteMapPreview() {
   return (
-    <AppCard style={styles.preview}>
-      <Ionicons name="map-outline" size={54} color={colors.secondary} />
-      <Text style={styles.title}>Route Map</Text>
-      <Text style={styles.subtitle}>
-        Your walking route will appear here after map integration.
-      </Text>
-    </AppCard>
+    <TouchableOpacity 
+      style={styles.mapPreviewCard}
+      activeOpacity={0.8}
+      onPress={() => router.push('/map-fullscreen')}
+    >
+      <View style={styles.placeholderMap}>
+        <Ionicons name="map" size={60} color={colors.primary} />
+        <Text style={styles.previewText}>Tap to open interactive Map</Text>
+      </View>
+      <View style={styles.cardFooter}>
+        <Ionicons name="search" size={20} color={colors.mutedText} />
+        <Text style={styles.footerText}>Where are you heading?</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  preview: {
-    alignItems: "center",
-    backgroundColor: "#11151D",
-    flex: 1,
-    justifyContent: "center",
+  mapPreviewCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 8,
     marginBottom: spacing.lg,
-    minHeight: 260,
-    padding: spacing.lg,
+    flex: 1, // Nimmt den verfügbaren Platz wie der alte Platzhalter
   },
-  title: {
-    color: colors.text,
-    fontFamily: "nunito-bold",
-    fontSize: 24,
-    marginTop: spacing.md,
+  placeholderMap: {
+    flex: 1,
+    minHeight: 200,
+    backgroundColor: '#E8F0FE', // Light blueish map tint
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  subtitle: {
+  previewText: {
+    marginTop: 10,
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.card,
+  },
+  footerText: {
+    marginLeft: spacing.sm,
     color: colors.mutedText,
     fontFamily: "nunito-regular",
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: spacing.sm,
-    maxWidth: 260,
-    textAlign: "center",
-  },
+    fontSize: 16,
+  }
 });
