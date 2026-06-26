@@ -1,5 +1,11 @@
 {
   "plugins": [
-    "expo-font"
+    "expo-font",
+    [
+      "expo-contacts",
+      {
+        "contactsPermission": "Allow SafeWalk to access your contacts so you can choose emergency contacts."
+      }
+    ]
   ]
 }

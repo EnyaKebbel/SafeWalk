@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { Alert, View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing } from "../../src/constants/theme";
 import {
   listenToContacts,
   addTrustedContact,
+  addTrustedContacts,
   updateTrustedContact,
   updateContactsOrder,
   deleteTrustedContact,
@@ -13,6 +14,7 @@ import {
 
 import ContactCard from "../../src/components/contacts/ContactCard";
 import ContactModal from "../../src/components/contacts/ContactModal";
+import ContactImportModal, { ImportableContact } from "../../src/components/contacts/ContactImportModal";
 import DeleteConfirmModal from "../../src/components/modals/DeleteConfirmModal";
 
 export default function ContactsScreen() {
@@ -24,6 +26,7 @@ export default function ContactsScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [importModalVisible, setImportModalVisible] = useState(false);
 
   // State für das eigene Lösch-Bestätigungs-Popup
   const [contactToDelete, setContactToDelete] = useState<{id: string, name: string} | null>(null);
@@ -67,6 +70,22 @@ export default function ContactsScreen() {
       await addTrustedContact(name, phone, contacts.length);
     }
     closeModal();
+  };
+
+  // Importiert mehrere Systemkontakte und hängt sie ans Ende der Prioritäten.
+  const handleImportContacts = async (contactsToImport: ImportableContact[]) => {
+    try {
+      await addTrustedContacts(
+        contactsToImport.map((contact) => ({
+          name: contact.name,
+          contactNumber: contact.phoneNumber,
+        })),
+        contacts.length
+      );
+    } catch {
+      Alert.alert("Import failed", "The selected contacts could not be imported. Please try again.");
+      throw new Error("Contact import failed");
+    }
   };
 
   const confirmDelete = (id: string, contactName: string) => {
@@ -128,8 +147,14 @@ export default function ContactsScreen() {
         showsVerticalScrollIndicator={false}
       />
 
+      {/* Floating Action Button (FAB) zum Importieren bestehender Systemkontakte */}
+      <TouchableOpacity style={styles.importFab} onPress={() => setImportModalVisible(true)}>
+        <Ionicons name="people-outline" size={20} color="#FFF" />
+        <Text style={styles.importFabText}>Import from Contacts</Text>
+      </TouchableOpacity>
+
       {/* Floating Action Button (FAB) zum Hinzufügen neuer Kontakte */}
-      <TouchableOpacity style={styles.fab} onPress={() => openModal()}>
+      <TouchableOpacity style={styles.addFab} onPress={() => openModal()}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
 
@@ -143,6 +168,14 @@ export default function ContactsScreen() {
         onPhoneChange={setPhone}
         onClose={closeModal}
         onSave={handleSave}
+      />
+
+      {/* Importiert bestehende Systemkontakte in die SafeWalk-Notfallkontakte. */}
+      <ContactImportModal
+        visible={importModalVisible}
+        existingPhoneNumbers={contacts.map((contact) => contact.contactNumber)}
+        onClose={() => setImportModalVisible(false)}
+        onImport={handleImportContacts}
       />
 
       {/* Ausgelagertes Popup zur Lösch-Bestätigung */}
@@ -180,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: 100, // Extra Abstand unten
   },
-  fab: {
+  addFab: {
     position: "absolute",
     bottom: spacing.lg,
     right: spacing.lg,
@@ -195,5 +228,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+  importFab: {
+    position: "absolute",
+    bottom: spacing.lg,
+    left: spacing.lg,
+    right: 96,
+    backgroundColor: colors.primary,
+    height: 60,
+    borderRadius: 30,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  importFabText: {
+    color: "#FFF",
+    fontSize: 15,
+    fontWeight: "700",
+    marginLeft: spacing.sm,
   },
 });

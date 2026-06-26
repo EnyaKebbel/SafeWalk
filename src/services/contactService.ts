@@ -21,6 +21,12 @@ export type TrustedContact = {
     order?: number;
 };
 
+// Typ fuer neue Kontakte, die noch keine Firebase-ID haben.
+export type NewTrustedContact = {
+    name: string;
+    contactNumber: string;
+};
+
 export async function addTrustedContact(
     name: string,
     contactNumber: string,
@@ -32,6 +38,26 @@ export async function addTrustedContact(
         order,
         createdAt: serverTimestamp(),
     });
+}
+
+// Speichert mehrere importierte Kontakte in einem gemeinsamen Firebase-Batch.
+export async function addTrustedContacts(
+    contacts: NewTrustedContact[],
+    startOrder: number
+) {
+    const batch = writeBatch(db);
+
+    contacts.forEach((contact, index) => {
+        const contactRef = doc(collection(db, "contacts"));
+        batch.set(contactRef, {
+            name: contact.name,
+            contactNumber: contact.contactNumber,
+            order: startOrder + index,
+            createdAt: serverTimestamp(),
+        });
+    });
+
+    await batch.commit();
 }
 
 export function listenToContacts(
