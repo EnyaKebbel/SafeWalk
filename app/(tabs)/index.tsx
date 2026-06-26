@@ -1,9 +1,11 @@
-import { View, Text } from "react-native";
+import { ScreenContainer } from '../../src/components/layout/ScreenContainer';
+import { AppText } from '../../src/components/layout/AppText';
 
+// Home-Screen als zentraler Einstiegspunkt mit Karte und schnellen Aktionen.
 export default function HomeScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Home Screen</Text>
-    </View>
-  );
+    return (
+        <ScreenContainer>
+            <AppText>Home</AppText>
+        </ScreenContainer>
+    );
 }

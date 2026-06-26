@@ -1,9 +1,11 @@
-import { View, Text } from "react-native";
+import {ScreenContainer} from "../../src/components/layout/ScreenContainer";
+import {AppText} from "../../src/components/layout/AppText";
 
+// Settings-Screen fuer App-Einstellungen, Benachrichtigungen und Rechtliches.
 export default function SettingsScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Settings Screen</Text>
-    </View>
+      <ScreenContainer>
+          <AppText>Settings</AppText>
+      </ScreenContainer>
   );
 }

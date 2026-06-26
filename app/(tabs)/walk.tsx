@@ -1,9 +1,11 @@
-import { View, Text } from "react-native";
+import { ScreenContainer } from '../../src/components/layout/ScreenContainer';
+import { AppText } from '../../src/components/layout/AppText';
 
+// Walk-Screen fuer Ziel, Timer und Start eines sicheren Walks.
 export default function WalkScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Walk Screen</Text>
-    </View>
+      <ScreenContainer>
+          <AppText>Walk</AppText>
+      </ScreenContainer>
   );
 }
