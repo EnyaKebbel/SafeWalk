@@ -9,14 +9,15 @@ export type RouteSuggestion = {
     distanceKm: number;
 };
 
-const ORS_API_KEY = process.env.EXPO_PUBLIC_OPENROUTE_SERVICE_API_KEY;
+// Ein gemeinsamer Env-Key fuer alle OpenRouteService-Aufrufe.
+const ORS_API_KEY = process.env.EXPO_PUBLIC_OPENROUTESERVICE_KEY;
 const ORS_BASE_URL = "https://api.openrouteservice.org";
 
 // Trennt die API-Key-Pruefung vom Screen, damit die UI nur Fehlertexte anzeigen muss.
 function requireApiKey() {
     if (!ORS_API_KEY) {
         throw new Error(
-            "Missing OpenRouteService API key. Set EXPO_PUBLIC_OPENROUTE_SERVICE_API_KEY to enable route estimates."
+            "Missing OpenRouteService API key. Set EXPO_PUBLIC_OPENROUTESERVICE_KEY to enable route estimates."
         );
     }
 
