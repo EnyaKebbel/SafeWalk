@@ -9,6 +9,7 @@ import {
   updateTrustedContact,
   updateContactsOrder,
   deleteTrustedContact,
+  getCachedTrustedContacts,
   TrustedContact,
 } from "../../src/services/contactService";
 
@@ -20,6 +21,7 @@ import DeleteConfirmModal from "../../src/components/modals/DeleteConfirmModal";
 export default function ContactsScreen() {
   // Speichert die Liste aller Notfallkontakte aus Firebase
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
+  const [isShowingCachedContacts, setIsShowingCachedContacts] = useState(false);
   
   // State-Variablen für das Popup zum Hinzufügen/Bearbeiten
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,11 +33,28 @@ export default function ContactsScreen() {
   // State für das eigene Lösch-Bestätigungs-Popup
   const [contactToDelete, setContactToDelete] = useState<{id: string, name: string} | null>(null);
 
-  // Holt die Kontakte in Echtzeit aus Firebase
+  // Holt zuerst den lokalen Cache und aktualisiert danach live aus Firebase.
   useEffect(() => {
+    // Dadurch ist die Kontaktliste sofort nutzbar, auch wenn Firebase gerade langsam oder offline ist.
+    getCachedTrustedContacts().then((cachedContacts) => {
+      if (cachedContacts.length > 0) {
+        setContacts(cachedContacts);
+        setIsShowingCachedContacts(true);
+      }
+    });
+
     const unsubscribe = listenToContacts((fetchedContacts) => {
       setContacts(fetchedContacts);
+      setIsShowingCachedContacts(false);
+    }, async () => {
+      // Wenn der Live-Listener scheitert, bleibt der letzte gespeicherte Stand sichtbar.
+      const cachedContacts = await getCachedTrustedContacts();
+      if (cachedContacts.length > 0) {
+        setContacts(cachedContacts);
+        setIsShowingCachedContacts(true);
+      }
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -127,6 +146,16 @@ export default function ContactsScreen() {
         <Text style={styles.subtitle}>Prioritize who gets called first</Text>
       </View>
 
+      {isShowingCachedContacts && (
+        // Sichtbarer Nachweis fuer den Offline-/Caching-Modus aus der Aufgabenstellung.
+        <View style={styles.cacheNotice}>
+          <Ionicons name="cloud-offline-outline" size={18} color={colors.secondary} />
+          <Text style={styles.cacheNoticeText}>
+            Offline mode: showing saved contacts.
+          </Text>
+        </View>
+      )}
+
       {/* Rendert die scrollbare Kontaktliste */}
       <FlatList
         data={contacts}
@@ -208,6 +237,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.mutedText,
     marginTop: spacing.xs,
+  },
+  cacheNotice: {
+    alignItems: "center",
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.lg,
+    padding: spacing.md,
+  },
+  cacheNoticeText: {
+    color: colors.text,
+    flex: 1,
+    fontSize: 14,
+    marginLeft: spacing.sm,
   },
   listContent: {
     paddingHorizontal: spacing.lg,
