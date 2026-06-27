@@ -21,6 +21,11 @@ export interface AddressSuggestion {
   label: string;
 }
 
+function isNetworkRequestError(error: unknown) {
+  // Expo meldet echte Offline-Fetches als TypeError mit dieser Meldung.
+  return error instanceof TypeError && error.message.includes("Network request failed");
+}
+
 // Hilfsfunktion: Holt den API-Key aus der .env Datei
 const getApiKey = () => {
   const key = process.env.EXPO_PUBLIC_OPENROUTESERVICE_KEY;
@@ -53,7 +58,10 @@ export const fetchAutocompleteSuggestions = async (text: string): Promise<Addres
     }
     return [];
   } catch (error) {
-    console.error("Autocomplete Error:", error);
+    if (!isNetworkRequestError(error)) {
+      console.warn("Autocomplete unavailable:", error);
+    }
+    // Offline soll das Suchfeld leer bleiben, aber keine rote Expo-Fehlerseite oeffnen.
     return [];
   }
 };
@@ -80,8 +88,13 @@ export const geocodeAddress = async (address: string): Promise<Coordinates> => {
     
     throw new Error("Adresse nicht gefunden");
   } catch (error) {
-    console.error("Geocoding Error:", error);
-    throw error;
+    if (isNetworkRequestError(error)) {
+      // Route und Adresse kommen von OpenRouteService und brauchen daher Internet.
+      throw new Error("Address search needs an internet connection.");
+    }
+
+    console.warn("Geocoding unavailable:", error);
+    throw error instanceof Error ? error : new Error("Adresse nicht gefunden");
   }
 };
 
@@ -130,7 +143,12 @@ export const getRoute = async (
     
     throw new Error("Keine Route gefunden");
   } catch (error) {
-    console.error("Routing Error:", error);
-    throw error;
+    if (isNetworkRequestError(error)) {
+      // Route und Adresse kommen von OpenRouteService und brauchen daher Internet.
+      throw new Error("Route calculation needs an internet connection.");
+    }
+
+    console.warn("Routing unavailable:", error);
+    throw error instanceof Error ? error : new Error("Fehler bei der Routenberechnung");
   }
 };

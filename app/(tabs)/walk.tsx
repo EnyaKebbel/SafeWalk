@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Linking,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import * as SMS from 'expo-sms';
@@ -24,8 +23,6 @@ import {
   TransportMode,
 } from "../../src/services/routeService";
 import { ActiveWalk, clearActiveWalk, getActiveWalk, startActiveWalk } from "../../src/services/walkService";
-import ActiveWalkCard from "../../src/components/walk/ActiveWalkCard";
-import RouteMapPreview from "../../src/components/map/RouteMapPreview";
 import ActiveWalkTracker from "../../src/components/walk/ActiveWalkTracker";
 import NotifyContactModal from "../../src/components/modals/NotifyContactModal";
 import { TrustedContact } from "../../src/services/contactService";
@@ -54,20 +51,6 @@ async function getCurrentPosition(): Promise<Coordinates> {
   }
 }
 
-function formatRemainingTime(endsAt: string) {
-    const remainingMs = new Date(endsAt).getTime() - Date.now();
-
-    if (remainingMs <= 0) {
-        return "Time is up";
-    }
-
-    const totalSeconds = Math.ceil(remainingMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
-
 // Walk-Screen for destination, route time and starting a safe walk.
 export default function WalkScreen() {
   const [routeSuggestion, setRouteSuggestion] = useState<RouteSuggestion | null>(null);
@@ -75,12 +58,10 @@ export default function WalkScreen() {
   const [isEstimating, setIsEstimating] = useState(false);
   
   const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
-  const [remainingTime, setRemainingTime] = useState("");
 
   const loadActiveWalk = useCallback(async () => {
       const walk = await getActiveWalk();
       setActiveWalk(walk);
-      setRemainingTime(walk ? formatRemainingTime(walk.endsAt) : "");
   }, []);
 
   useFocusEffect(
@@ -88,19 +69,6 @@ export default function WalkScreen() {
           loadActiveWalk();
       }, [loadActiveWalk])
   );
-
-  useEffect(() => {
-      if (!activeWalk) return;
-      const intervalId = setInterval(() => {
-          setRemainingTime(formatRemainingTime(activeWalk.endsAt));
-      }, 1000);
-      return () => clearInterval(intervalId);
-  }, [activeWalk]);
-
-  const arrivalTime = useMemo(() => {
-      if (!activeWalk) return "";
-      return new Date(activeWalk.endsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }, [activeWalk]);
 
   const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
@@ -113,7 +81,6 @@ export default function WalkScreen() {
       setNotifyModalVisible(false);
       await clearActiveWalk();
       setActiveWalk(null);
-      setRemainingTime("");
   };
 
   const handleNotifyContact = async (contacts: TrustedContact[]) => {
@@ -244,11 +211,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  activeContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.lg,
   },
   content: {
     paddingHorizontal: spacing.lg,

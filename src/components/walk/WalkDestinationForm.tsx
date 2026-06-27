@@ -13,7 +13,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import * as yup from "yup";
-import { router } from "expo-router";
 import { colors, radius, spacing } from "../../constants/theme";
 import PrimaryButton from "../buttons/PrimaryButton";
 import { TransportMode } from "../../services/routeService";
@@ -289,12 +288,6 @@ const styles = StyleSheet.create({
     fontFamily: "nunito-bold",
     fontSize: 16,
     marginBottom: 0,
-  },
-  inlineMapButton: {
-    padding: 8,
-    marginRight: 4,
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
   },
   dropdown: {
     backgroundColor: colors.card,

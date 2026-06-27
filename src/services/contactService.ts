@@ -11,6 +11,7 @@ import {
     updateDoc,
     writeBatch,
     getDocs,
+    getDocsFromServer,
     limit
 } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -85,19 +86,40 @@ export async function addTrustedContacts(
 }
 
 export function listenToContacts(
-    callback: (contacts: TrustedContact[]) => void,
+    callback: (
+        contacts: TrustedContact[],
+        options?: { isFromCache: boolean }
+    ) => void,
     onError?: (error: FirestoreError) => void
 ) {
     const q = query(collection(db, "contacts"), orderBy("order", "asc"));
-    return onSnapshot(q, async (snapshot) => {
-        const contacts = snapshot.docs.map((document) => ({
-            id: document.id,
-            ...(document.data() as Omit<TrustedContact, "id">),
-        }));
+    return onSnapshot(
+        q,
+        { includeMetadataChanges: true },
+        async (snapshot) => {
+            const contacts = snapshot.docs.map((document) => ({
+                id: document.id,
+                ...(document.data() as Omit<TrustedContact, "id">),
+            }));
 
-        await cacheTrustedContacts(contacts);
-        callback(contacts);
-    }, onError);
+            await cacheTrustedContacts(contacts);
+            callback(contacts, { isFromCache: snapshot.metadata.fromCache });
+        },
+        onError
+    );
+}
+
+export async function fetchLatestTrustedContacts() {
+    const q = query(collection(db, "contacts"), orderBy("order", "asc"));
+    // Reconnect-Pruefung: hier bewusst nur Server, nicht Firestore-Cache.
+    const snapshot = await getDocsFromServer(q);
+    const contacts = snapshot.docs.map((document) => ({
+        id: document.id,
+        ...(document.data() as Omit<TrustedContact, "id">),
+    }));
+
+    await cacheTrustedContacts(contacts);
+    return contacts;
 }
 
 export async function getTopPriorityContact(): Promise<TrustedContact | null> {

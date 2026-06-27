@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Alert, ActivityIndicator, Text, TouchableOpacity } from "react-native";
-import { Stack, router } from "expo-router";
+import { Stack } from "expo-router";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
@@ -108,7 +108,13 @@ export default function MapFullscreenScreen() {
         });
       }
     } catch (error) {
-      Alert.alert("Error", "Could not calculate route. Please try another address.");
+      // Erwartete Offline-/API-Fehler als normale App-Meldung statt Expo-Console-Overlay anzeigen.
+      Alert.alert(
+        "Route unavailable",
+        error instanceof Error
+          ? error.message
+          : "Could not calculate route. Please try another address."
+      );
       setRoute(null);
       setDestination(null);
     } finally {
@@ -125,8 +131,14 @@ export default function MapFullscreenScreen() {
       try {
         const routeData = await getRoute(currentLocation, destination, newMode);
         setRoute(routeData);
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        // Auch beim Wechsel des Transportmodus kann die Routen-API offline sein.
+        Alert.alert(
+          "Route unavailable",
+          error instanceof Error
+            ? error.message
+            : "Could not calculate route. Please try again."
+        );
       } finally {
         setIsLoading(false);
       }

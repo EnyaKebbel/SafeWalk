@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import { Alert, View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import { colors, spacing } from "../../src/constants/theme";
 import {
   listenToContacts,
@@ -10,6 +11,7 @@ import {
   updateContactsOrder,
   deleteTrustedContact,
   getCachedTrustedContacts,
+  fetchLatestTrustedContacts,
   TrustedContact,
 } from "../../src/services/contactService";
 
@@ -22,6 +24,7 @@ export default function ContactsScreen() {
   // Speichert die Liste aller Notfallkontakte aus Firebase
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
   const [isShowingCachedContacts, setIsShowingCachedContacts] = useState(false);
+  const lastLiveSnapshotAt = useRef(0);
   
   // State-Variablen für das Popup zum Hinzufügen/Bearbeiten
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,17 +38,31 @@ export default function ContactsScreen() {
 
   // Holt zuerst den lokalen Cache und aktualisiert danach live aus Firebase.
   useEffect(() => {
-    // Dadurch ist die Kontaktliste sofort nutzbar, auch wenn Firebase gerade langsam oder offline ist.
+    let cacheNoticeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Dadurch ist die Kontaktliste sofort nutzbar, waehrend Firebase noch verbindet.
     getCachedTrustedContacts().then((cachedContacts) => {
       if (cachedContacts.length > 0) {
         setContacts(cachedContacts);
-        setIsShowingCachedContacts(true);
+        // Expo/Firebase meldet im Flugmodus nicht immer sofort einen Fehler.
+        // Wenn kein Live-Snapshot kommt, markieren wir den sichtbaren Stand als Cache.
+        cacheNoticeTimeout = setTimeout(() => {
+          setIsShowingCachedContacts(true);
+        }, 2000);
       }
     });
 
-    const unsubscribe = listenToContacts((fetchedContacts) => {
+    const unsubscribe = listenToContacts((fetchedContacts, options) => {
+      if (cacheNoticeTimeout) {
+        clearTimeout(cacheNoticeTimeout);
+      }
+
       setContacts(fetchedContacts);
-      setIsShowingCachedContacts(false);
+      // Firestore markiert Snapshots aus dem lokalen Cache, z.B. im Flugmodus.
+      setIsShowingCachedContacts(options?.isFromCache ?? false);
+      if (!options?.isFromCache) {
+        lastLiveSnapshotAt.current = Date.now();
+      }
     }, async () => {
       // Wenn der Live-Listener scheitert, bleibt der letzte gespeicherte Stand sichtbar.
       const cachedContacts = await getCachedTrustedContacts();
@@ -55,10 +72,60 @@ export default function ContactsScreen() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (cacheNoticeTimeout) {
+        clearTimeout(cacheNoticeTimeout);
+      }
+      unsubscribe();
+    };
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      // Tabs werden nicht immer neu gemountet. Beim Fokus pruefen wir deshalb erneut,
+      // ob nur alte Cache-Daten sichtbar sind und kein aktueller Live-Snapshot kam.
+      const timeoutId = setTimeout(async () => {
+        const cachedContacts = await getCachedTrustedContacts();
+        const liveSnapshotIsStale = Date.now() - lastLiveSnapshotAt.current > 3000;
+
+        if (isActive && cachedContacts.length > 0 && liveSnapshotIsStale) {
+          setIsShowingCachedContacts(true);
+        }
+      }, 2000);
+
+      return () => {
+        isActive = false;
+        clearTimeout(timeoutId);
+      };
+    }, [])
+  );
+
   // Öffnet das Popup für einen neuen oder bestehenden Kontakt
+  useEffect(() => {
+    if (!isShowingCachedContacts) {
+      return;
+    }
+
+    const tryRefreshFromFirebase = async () => {
+      try {
+        // Sobald Firebase wieder erreichbar ist, ersetzen wir den Cache durch Live-Daten.
+        const latestContacts = await fetchLatestTrustedContacts();
+        setContacts(latestContacts);
+        setIsShowingCachedContacts(false);
+        lastLiveSnapshotAt.current = Date.now();
+      } catch {
+        // Offline bleiben wir ruhig beim lokalen Cache und versuchen es spaeter erneut.
+      }
+    };
+
+    const intervalId = setInterval(tryRefreshFromFirebase, 5000);
+    tryRefreshFromFirebase();
+
+    return () => clearInterval(intervalId);
+  }, [isShowingCachedContacts]);
+
   const openModal = (contact?: TrustedContact) => {
     if (contact) {
       setEditingId(contact.id!);
