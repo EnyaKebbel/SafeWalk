@@ -100,7 +100,7 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
       <View style={styles.cardFooter}>
         <Ionicons name="map" size={20} color={colors.primary} />
         <Text style={styles.footerText}>
-          {activeWalk ? "Active Route" : "Tap to open interactive Map"}
+          {activeWalk ? "Active Route" : "Tap to select your route"}
         </Text>
       </View>
     </TouchableOpacity>

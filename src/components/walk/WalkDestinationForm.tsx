@@ -262,7 +262,7 @@ export default function WalkDestinationForm({
           {values.destination.trim() ? children : null}
 
           <PrimaryButton
-            title="Start Walk"
+            title={mode === 'walk' ? 'Start Walk' : mode === 'bike' ? 'Start Ride' : 'Start Drive'}
             onPress={() => handleSubmit()}
             icon={<Ionicons name="play" size={20} color={colors.text} />}
             style={styles.startButton}
