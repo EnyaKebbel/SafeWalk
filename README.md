@@ -35,8 +35,7 @@ npm install
 Dafür muss man im Hauptordner eine Datei erstellen, die einfach nur `.env` heißt. In diese Datei kopiert man Folgendes rein und trägt seine eigenen Keys ein:
 
 ```env
-EXPO_PUBLIC_OPENROUTESERVICE_KEY=eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiNzlmNDY4NzA5ZTRhMDE4Yzk1ODVkOTAxZWViYTVlIiwiaCI6Im11cm11cjY0In0=
-EXPO_PUBLIC_OPENROUTE_SERVICE_API_KEY=eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiNzlmNDY4NzA5ZTRhMDE4Yzk1ODVkOTAxZWViYTVlIiwiaCI6Im11cm11cjY0In0=
+EXPO_PUBLIC_OPENROUTESERVICE_KEY=dein_openrouteservice_api_key
 ```
 
 4. App starten:
@@ -54,5 +53,12 @@ Im Terminal taucht dann ein QR-Code auf. Den scannt man einfach mit der normalen
 - Firebase für die Datenbank
 - OpenRouteService für die Map
 - Expo Router
+
+## Offline und Caching
+SafeWalk speichert wichtige Daten lokal auf dem Gerät, damit ein Teil der App auch ohne stabile Internetverbindung nutzbar bleibt.
+Der aktive Walk, die Notification-Einstellung und die zuletzt geladenen Notfallkontakte werden mit AsyncStorage gecacht.
+Wenn Firebase gerade nicht erreichbar ist, zeigt die Kontaktliste die zuletzt gespeicherten Kontakte mit einem Offline-Hinweis an.
+
+Die Karten- und Routenfunktionen brauchen weiterhin Internet, weil sie OpenRouteService und den Kartenanbieter verwenden.
 
 Entwickelt von Enya und Vanessa :)

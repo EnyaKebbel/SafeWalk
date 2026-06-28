@@ -8,6 +8,7 @@ import { ActiveWalk } from "../../services/walkService";
 import { geocodeAddress, getRoute, Coordinates, RouteData } from "../../services/mapService";
 import { getTopPriorityContact } from "../../services/contactService";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { triggerTestHaptic } from "../../services/hapticsService";
 
 type ActiveWalkTrackerProps = {
   activeWalk: ActiveWalk;
@@ -19,6 +20,7 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [route, setRoute] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
+  const [routeError, setRouteError] = useState<string | null>(null);
 
   useEffect(() => {
     let locationSubscription: Location.LocationSubscription;
@@ -41,6 +43,7 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
         setDestinationCoords(destCoords);
         const routeData = await getRoute(coords, destCoords, 'walk');
         setRoute(routeData);
+        setRouteError(null);
 
         // Map fokussieren
         if (mapRef.current) {
@@ -79,8 +82,13 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
           }
         );
 
-      } catch (err) {
-        console.error("Error setting up active walk map:", err);
+      } catch (error) {
+        // Offline kann die Karte den Standort zeigen, aber keine neue ORS-Route laden.
+        setRouteError(
+          error instanceof Error
+            ? error.message
+            : "Route data is currently unavailable."
+        );
       }
     })();
 
@@ -92,6 +100,8 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
   }, [activeWalk]);
 
   const triggerPanic = async () => {
+    // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geoeffnet wird.
+    triggerTestHaptic();
     try {
       const topContact = await getTopPriorityContact();
       const phoneToCall = topContact ? topContact.contactNumber : "112";
@@ -141,6 +151,13 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
           </MapView>
 
           <View style={styles.overlay}>
+            {routeError && (
+              <View style={styles.routeErrorNotice}>
+                <Ionicons name="cloud-offline-outline" size={18} color={colors.secondary} />
+                <Text style={styles.routeErrorText}>{routeError}</Text>
+              </View>
+            )}
+
             <View style={{ flex: 1, marginRight: spacing.md, marginBottom: 15 }}>
                 <PrimaryButton
                     title="Arrived Safely"
@@ -184,8 +201,26 @@ const styles = StyleSheet.create({
     left: spacing.lg,
     right: spacing.lg,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+  },
+  routeErrorNotice: {
+    alignItems: "center",
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexDirection: "row",
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    width: "100%",
+  },
+  routeErrorText: {
+    color: colors.text,
+    flex: 1,
+    fontSize: 14,
+    marginLeft: spacing.sm,
   },
   endWalkButton: {
     backgroundColor: colors.card,

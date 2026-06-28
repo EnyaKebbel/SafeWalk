@@ -166,6 +166,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  contactItemActive: {
+    // Macht ausgewaehlte Kontakte sichtbar, ohne das Layout zu veraendern.
+    borderColor: colors.primary,
+    backgroundColor: colors.cardLight,
+  },
   contactIcon: {
     width: 40,
     height: 40,

@@ -25,7 +25,7 @@ export default function ActiveWalkCard({
   return (
     <AppCard>
       <View style={styles.header}>
-        <View>
+        <View style={styles.titleBlock}>
           <Text style={styles.eyebrow}>Active walk</Text>
           <Text style={styles.destination} numberOfLines={2}>
             {activeWalk.destination}
@@ -38,7 +38,9 @@ export default function ActiveWalkCard({
           ]}
         >
           <Ionicons name="time-outline" size={18} color={colors.text} />
-          <Text style={styles.timerText}>{remainingTime}</Text>
+          <Text style={styles.timerText} numberOfLines={1}>
+            {remainingTime}
+          </Text>
         </View>
       </View>
 
@@ -75,9 +77,14 @@ export default function ActiveWalkCard({
 
 const styles = StyleSheet.create({
   header: {
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between",
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
   },
   eyebrow: {
     color: colors.secondary,
@@ -90,7 +97,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: "nunito-bold",
     fontSize: 20,
-    maxWidth: 210,
   },
   timerBadge: {
     alignItems: "center",
@@ -99,6 +105,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xs,
     height: 42,
+    maxWidth: "46%",
     paddingHorizontal: spacing.md,
   },
   timerBadgeExpiring: {
@@ -106,6 +113,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     color: colors.text,
+    flexShrink: 1,
     fontFamily: "nunito-bold",
     fontSize: 16,
   },
