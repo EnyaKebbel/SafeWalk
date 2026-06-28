@@ -63,6 +63,10 @@ export function triggerSelectionHaptic() {
   triggerTestHaptic();
 }
 
+export function triggerWarningHaptic() {
+  triggerTestHaptic();
+}
+
 // Staerkeres Feedback fuer wichtige Aktionen wie das Starten eines Walks.
 export function triggerImpactHaptic(
   style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Medium

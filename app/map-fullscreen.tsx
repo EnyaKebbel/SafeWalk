@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Alert, ActivityIndicator, Text, TouchableOpacity } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,7 +12,7 @@ import { geocodeAddress, getRoute, Coordinates, RouteData } from "../src/service
 import {
   triggerImpactHaptic,
   triggerSelectionHaptic,
-  triggerTestHaptic,
+  triggerWarningHaptic,
 } from "../src/services/hapticsService";
 
 type TransportMode = 'walk' | 'bike' | 'car';
@@ -108,13 +108,7 @@ export default function MapFullscreenScreen() {
         });
       }
     } catch (error) {
-      // Erwartete Offline-/API-Fehler als normale App-Meldung statt Expo-Console-Overlay anzeigen.
-      Alert.alert(
-        "Route unavailable",
-        error instanceof Error
-          ? error.message
-          : "Could not calculate route. Please try another address."
-      );
+      Alert.alert("Error", "Could not calculate route. Please try another address.");
       setRoute(null);
       setDestination(null);
     } finally {
@@ -131,14 +125,8 @@ export default function MapFullscreenScreen() {
       try {
         const routeData = await getRoute(currentLocation, destination, newMode);
         setRoute(routeData);
-      } catch (error) {
-        // Auch beim Wechsel des Transportmodus kann die Routen-API offline sein.
-        Alert.alert(
-          "Route unavailable",
-          error instanceof Error
-            ? error.message
-            : "Could not calculate route. Please try again."
-        );
+      } catch (e) {
+        console.error(e);
       } finally {
         setIsLoading(false);
       }
@@ -175,8 +163,7 @@ export default function MapFullscreenScreen() {
   };
 
   const triggerPanic = () => {
-    // SOS gibt sofort haptisches Feedback, bevor der Warnhinweis erscheint.
-    triggerTestHaptic();
+    triggerWarningHaptic();
     Alert.alert("EMERGENCY", "Panic Button pressed! Contacting ONLY your configured Safe Contacts. Emergency Services (112) will NOT be called automatically due to legal reasons.", [
       { text: "Cancel", style: "cancel" },
       { text: "Alert Contacts", style: "destructive", onPress: () => console.log("Calling Safe Contacts!") }

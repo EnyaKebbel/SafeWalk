@@ -14,7 +14,10 @@ function HeaderLogo() {
   );
 }
 
+import { useWalkAlarm } from "../../src/hooks/useWalkAlarm";
+
 export default function TabLayout() {
+  useWalkAlarm();
   return (
     // Gemeinsames Styling fuer Header und Tab-Bar, damit alle Tabs einheitlich wirken.
     <Tabs screenOptions={{  
