@@ -17,6 +17,7 @@ export type ActiveWalk = {
     endsAt: string;
     reminderNotificationId?: string | null;
     routeSuggestion?: RouteSuggestion;
+    hasTriggeredAlarm?: boolean;
 };
 
 export async function startActiveWalk(input: {
@@ -96,6 +97,19 @@ export async function updateActiveWalkReminderNotificationId(
         JSON.stringify({
             ...activeWalk,
             reminderNotificationId,
+        })
+    );
+}
+
+export async function markWalkAlarmTriggered() {
+    const activeWalk = await getActiveWalk();
+    if (!activeWalk) return;
+    
+    await AsyncStorage.setItem(
+        ACTIVE_WALK_STORAGE_KEY,
+        JSON.stringify({
+            ...activeWalk,
+            hasTriggeredAlarm: true,
         })
     );
 }

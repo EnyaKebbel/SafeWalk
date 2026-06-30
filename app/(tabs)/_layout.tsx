@@ -3,7 +3,6 @@ import { Ionicons } from "@expo/vector-icons"
 import { Text, View } from "react-native";
 import { colors } from '../../src/constants/theme';
 
-// Setzt Header Logo & Icon
 function HeaderLogo() {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -15,10 +14,9 @@ function HeaderLogo() {
   );
 }
 
-// Definiert Tab-Navigation
 export default function TabLayout() {
   return (
-    // Gemeinsames Styling für Header und Tab-Bar.
+    // Gemeinsames Styling fuer Header und Tab-Bar, damit alle Tabs einheitlich wirken.
     <Tabs screenOptions={{  
         headerStyle: {
             backgroundColor: colors.background,
