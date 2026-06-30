@@ -63,6 +63,11 @@ export function triggerSelectionHaptic() {
   triggerTestHaptic();
 }
 
+// Warnungen nutzen aktuell denselben robusten Pfad wie SOS und Button-Haptics.
+export function triggerWarningHaptic() {
+  triggerTestHaptic();
+}
+
 // Staerkeres Feedback fuer wichtige Aktionen wie das Starten eines Walks.
 export function triggerImpactHaptic(
   style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Medium

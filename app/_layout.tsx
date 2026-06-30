@@ -6,12 +6,16 @@ import { useEffect } from "react";
 import { colors } from "../src/constants/theme";
 import * as Notifications from "expo-notifications";
 import { configureNotificationPresentation } from "../src/services/notificationService";
+import { useWalkAlarm } from "../src/hooks/useWalkAlarm";
 
 SplashScreen.preventAutoHideAsync()
 configureNotificationPresentation();
 
 // Root-Layout für die gesamte App und Stack-Navigation.
 export default function RootLayout() {
+    // Globaler Walk-Alarm: prueft auch dann weiter, wenn der User den Screen wechselt.
+    useWalkAlarm();
+
     // Schriften aus assets
     const [loaded, error] = useFonts({
         "nunito-regular": require("../src/assets/fonts/Nunito-Regular.ttf"),
