@@ -9,7 +9,7 @@ type RouteSuggestionCardProps = {
   suggestion: RouteSuggestion;
 };
 
-// Zeigt den API-Vorschlag, laesst die manuelle Zeit aber bewusst unangetastet.
+// Zeigt den API-Vorschlag, lässt die manuelle Zeit aber unangetastet.
 export default function RouteSuggestionCard({
   suggestion,
 }: RouteSuggestionCardProps) {

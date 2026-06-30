@@ -1,12 +1,14 @@
 import { Platform, Vibration } from "react-native";
 import * as Haptics from "expo-haptics";
 
+// Haptics-Service: zentrales Feedback für Buttons, SOS und Erfolgsmeldungen.
+
 type FallbackPattern = number | number[];
 
-// Bewaehrtes Pattern, das auf dem Testgeraet zuverlaessig spuerbar ist.
+// Bewährtes Pattern, das auf dem Testgerät zuverlässig spürbar ist.
 const BUTTON_HAPTIC_PATTERN: FallbackPattern = [0, 250, 120, 250];
 
-// Fuehrt Expo-Haptics aus und nutzt bei Fehlern eine einfache Vibration als Rueckfall.
+// Führt Expo-Haptics aus und nutzt bei Fehlern eine einfache Vibration als Rückfall.
 async function runHapticFeedback(
   feedback: () => Promise<void>,
   fallbackPattern?: FallbackPattern
@@ -14,7 +16,7 @@ async function runHapticFeedback(
   try {
     await feedback();
   } catch {
-    // Haptisches Feedback ist auf Simulatoren oder ohne Vibrationsmotor nicht immer verfuegbar.
+    // Haptisches Feedback ist auf Simulatoren oder ohne Vibrationsmotor nicht immer verfügbar.
     if (Platform.OS !== "web" && fallbackPattern) {
       Vibration.vibrate(fallbackPattern);
     }
@@ -25,7 +27,7 @@ function triggerAndroidVibration(pattern: FallbackPattern) {
   Vibration.vibrate(pattern);
 }
 
-// Kombiniert native Android-Haptics mit einer Vibration, damit der Klick sicher spuerbar bleibt.
+// Kombiniert native Android-Haptics mit Vibration, damit der Klick sicher spürbar bleibt.
 async function triggerAndroidHapticFeedback(
   type: Haptics.AndroidHaptics,
   pattern: FallbackPattern
@@ -39,7 +41,7 @@ async function triggerAndroidHapticFeedback(
   }
 }
 
-// Zentraler funktionierender Haptics-Pfad fuer Buttons und SOS.
+// Zentraler funktionierender Haptics-Pfad für Buttons und SOS.
 export function triggerTestHaptic() {
   if (Platform.OS === "web") {
     return;
@@ -63,7 +65,7 @@ export function triggerSelectionHaptic() {
   triggerTestHaptic();
 }
 
-// Staerkeres Feedback fuer wichtige Aktionen wie das Starten eines Walks.
+// Stärkeres Feedback für wichtige Aktionen wie das Starten eines Walks.
 export function triggerImpactHaptic(
   style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Medium
 ) {
@@ -78,7 +80,7 @@ export function triggerImpactHaptic(
   void runHapticFeedback(() => Haptics.impactAsync(style), 220);
 }
 
-// Bestaetigungssignal fuer erfolgreich abgeschlossene Aktionen.
+// Bestätigungssignal für erfolgreich abgeschlossene Aktionen.
 export function triggerSuccessHaptic() {
   if (Platform.OS === "android") {
     void triggerAndroidHapticFeedback(Haptics.AndroidHaptics.Confirm, [

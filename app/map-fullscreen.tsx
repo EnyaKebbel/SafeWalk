@@ -17,6 +17,8 @@ import {
 
 type TransportMode = 'walk' | 'bike' | 'car';
 
+// Große Kartenansicht:
+// Mit GPS, Adressuche, Route, Modus, Navigation, SOS-Button
 export default function MapFullscreenScreen() {
   const mapRef = useRef<MapView>(null);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);

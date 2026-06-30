@@ -31,7 +31,7 @@ import {
   triggerSuccessHaptic,
 } from "../../src/services/hapticsService";
 
-// Holt den aktuellen Standort als Startpunkt fuer die spaetere Routenberechnung.
+// Holt den aktuellen Standort als Startpunkt für die spätere Routenberechnung.
 async function getCurrentPosition(): Promise<Coordinates> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') {
@@ -51,7 +51,8 @@ async function getCurrentPosition(): Promise<Coordinates> {
   }
 }
 
-// Walk-Screen for destination, route time and starting a safe walk.
+// Walk-Screen: Ziel eingeben, Route schätzen und aktiven Walk starten.
+// Wenn schon ein Walk läuft, zeigen wir hier stattdessen den Live-Tracker.
 export default function WalkScreen() {
   const [routeSuggestion, setRouteSuggestion] = useState<RouteSuggestion | null>(null);
   const [suggestionError, setSuggestionError] = useState("");
@@ -59,6 +60,7 @@ export default function WalkScreen() {
   
   const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
 
+  // Prüft, ob schon ein Walk gespeichert ist.
   const loadActiveWalk = useCallback(async () => {
       const walk = await getActiveWalk();
       setActiveWalk(walk);
@@ -72,17 +74,20 @@ export default function WalkScreen() {
 
   const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
+  // Wird vom Tracker ausgelöst, wenn der User sicher angekommen ist.
   const handleArrivedSafely = () => {
       triggerSuccessHaptic();
       setNotifyModalVisible(true);
   };
 
+  // Löscht den aktiven Walk und schließt das Benachrichtigungs-Popup.
   const finishWalkAndClose = async () => {
       setNotifyModalVisible(false);
       await clearActiveWalk();
       setActiveWalk(null);
   };
 
+  // Sendet die "bin angekommen"-SMS an die ausgewählten Kontakte.
   const handleNotifyContact = async (contacts: TrustedContact[]) => {
       const message = "I just arrived safely at my destination!";
       const phoneNumbers = contacts.map(c => c.contactNumber);
@@ -104,7 +109,7 @@ export default function WalkScreen() {
       finishWalkAndClose();
   };
 
-  // Fragt OpenRouteService nach einer Gehzeit und uebernimmt sie als Vorschlag.
+  // Fragt OpenRouteService nach einer Gehzeit und übernimmt sie als Vorschlag.
   const estimateRoute = async (
     destination: string,
     mode: TransportMode,
@@ -138,7 +143,7 @@ export default function WalkScreen() {
     }
   };
 
-  // Speichert den aktiven Walk mit Endzeit und bringt den User zurueck zum Home Screen.
+  // Speichert den aktiven Walk mit Endzeit und bringt den User zurück zum Home Screen.
   const handleStartWalk = async (values: WalkFormValues) => {
     const parsedMinutes = Math.ceil(Number(values.minutes.replace(",", ".")));
     triggerImpactHaptic();
@@ -149,7 +154,7 @@ export default function WalkScreen() {
       routeSuggestion: routeSuggestion ?? undefined,
     });
 
-    setRouteSuggestion(null); // Verhindert, dass die alte Zeit beim naechsten Walk angezeigt wird
+    setRouteSuggestion(null); // Verhindert, dass die alte Zeit beim nächsten Walk angezeigt wird.
     router.replace("/");
   };
 

@@ -7,7 +7,7 @@ type AppCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-// Gemeinsame Card fuer Panels, damit Screens visuell einheitlich bleiben.
+// Wiederverwendbare Card-Komponente
 export default function AppCard({ children, style }: AppCardProps) {
   return <View style={[styles.card, style]}>{children}</View>;
 }

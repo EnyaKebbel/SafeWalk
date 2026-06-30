@@ -17,6 +17,9 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { db } from "./firebaseConfig";
 
+// Kontakt-Service: kümmert sich nur um Daten, nicht um UI.
+// Firebase ist die Hauptquelle, AsyncStorage ist unser Offline-Cache.
+
 const CONTACTS_CACHE_KEY = "@safewalk_cached_contacts";
 
 export type TrustedContact = {
@@ -26,7 +29,7 @@ export type TrustedContact = {
     order?: number;
 };
 
-// Typ fuer neue Kontakte, die noch keine Firebase-ID haben.
+// Neue Kontakte haben noch keine Firebase-ID, weil Firebase sie erst beim Speichern vergibt.
 export type NewTrustedContact = {
     name: string;
     contactNumber: string;
@@ -37,6 +40,7 @@ async function cacheTrustedContacts(contacts: TrustedContact[]) {
     await AsyncStorage.setItem(CONTACTS_CACHE_KEY, JSON.stringify(contacts));
 }
 
+// Lädt Kontakte aus dem lokalen Speicher, damit die App auch offline etwas anzeigen kann.
 export async function getCachedTrustedContacts() {
     const value = await AsyncStorage.getItem(CONTACTS_CACHE_KEY);
 
@@ -57,6 +61,7 @@ export async function addTrustedContact(
     contactNumber: string,
     order: number
 ) {
+    // Einzelnen Kontakt in der Firestore-Collection "contacts" anlegen.
     await addDoc(collection(db, "contacts"), {
         name,
         contactNumber,
@@ -92,6 +97,7 @@ export function listenToContacts(
     ) => void,
     onError?: (error: FirestoreError) => void
 ) {
+    // Live-Listener: der Contacts-Screen bekommt Änderungen automatisch mit.
     const q = query(collection(db, "contacts"), orderBy("order", "asc"));
     return onSnapshot(
         q,
@@ -111,7 +117,7 @@ export function listenToContacts(
 
 export async function fetchLatestTrustedContacts() {
     const q = query(collection(db, "contacts"), orderBy("order", "asc"));
-    // Reconnect-Pruefung: hier bewusst nur Server, nicht Firestore-Cache.
+    // Reconnect-Prüfung: hier bewusst nur Server, nicht Firestore-Cache.
     const snapshot = await getDocsFromServer(q);
     const contacts = snapshot.docs.map((document) => ({
         id: document.id,
@@ -123,6 +129,7 @@ export async function fetchLatestTrustedContacts() {
 }
 
 export async function getTopPriorityContact(): Promise<TrustedContact | null> {
+    // Der erste Kontakt in der Sortierung ist unser wichtigster Notfallkontakt.
     const q = query(collection(db, "contacts"), orderBy("order", "asc"), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
@@ -135,6 +142,7 @@ export async function updateTrustedContact(
     name: string,
     contactNumber: string
 ) {
+    // Ändert nur Name und Telefonnummer, die Priorität bleibt gleich.
     const contactRef = doc(db, "contacts", id);
     await updateDoc(contactRef, {
         name,
@@ -143,6 +151,7 @@ export async function updateTrustedContact(
 }
 
 export async function updateContactsOrder(contacts: TrustedContact[]) {
+    // Speichert die sichtbare Reihenfolge als order-Wert in Firebase.
     const batch = writeBatch(db);
     
     contacts.forEach((contact, index) => {
@@ -156,5 +165,6 @@ export async function updateContactsOrder(contacts: TrustedContact[]) {
 }
 
 export async function deleteTrustedContact(id: string) {
+    // Entfernt den Kontakt endgültig aus Firebase.
     await deleteDoc(doc(db, "contacts", id));
 }

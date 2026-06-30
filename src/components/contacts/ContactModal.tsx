@@ -22,6 +22,7 @@ interface ContactModalProps {
   onSave: () => void;
 }
 
+// Popup zum Hinzufügen/Bearbeiten eines Kontakts
 export default function ContactModal({
   visible,
   isEditing,

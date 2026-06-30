@@ -13,6 +13,7 @@ interface SettingsItemProps {
   onPress?: () => void;
 }
 
+// Komponente für einzelne Einträge in Einstellungen
 export default function SettingsItem({
   icon,
   title,

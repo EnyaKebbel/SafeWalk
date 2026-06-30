@@ -1,4 +1,5 @@
-// API Setup
+// Karten-Service für Autocomplete, Geocoding und komplette Routenlinien.
+// Wird vor allem von der Map-Ansicht und der Karten-Vorschau genutzt.
 const ORS_BASE_URL = "https://api.openrouteservice.org";
 
 export interface Coordinates {
@@ -26,7 +27,7 @@ function isNetworkRequestError(error: unknown) {
   return error instanceof TypeError && error.message.includes("Network request failed");
 }
 
-// Hilfsfunktion: Holt den API-Key aus der .env Datei
+// Holt den API-Key aus der .env Datei und bricht sonst mit verständlichem Fehler ab.
 const getApiKey = () => {
   const key = process.env.EXPO_PUBLIC_OPENROUTESERVICE_KEY;
   if (!key || key === "DEIN_API_KEY_HIER") {
@@ -35,9 +36,7 @@ const getApiKey = () => {
   return key;
 };
 
-/**
- * Holt Autovervollständigungs-Vorschläge für eine eingetippte Adresse.
- */
+// Holt Vorschläge für eine eingetippte Adresse.
 export const fetchAutocompleteSuggestions = async (text: string): Promise<AddressSuggestion[]> => {
   if (text.length < 3) return []; // Erst ab 3 Zeichen suchen, um API zu schonen
   
@@ -61,15 +60,12 @@ export const fetchAutocompleteSuggestions = async (text: string): Promise<Addres
     if (!isNetworkRequestError(error)) {
       console.warn("Autocomplete unavailable:", error);
     }
-    // Offline soll das Suchfeld leer bleiben, aber keine rote Expo-Fehlerseite oeffnen.
+    // Offline soll das Suchfeld leer bleiben, aber keine rote Expo-Fehlerseite öffnen.
     return [];
   }
 };
 
-/**
- * Nimmt einen Text (z.B. "Hauptstraße 1, Berlin") und fragt die API
- * nach den genauen GPS-Koordinaten.
- */
+// Wandelt eine Adresse in GPS-Koordinaten um.
 export const geocodeAddress = async (address: string): Promise<Coordinates> => {
   try {
     const apiKey = getApiKey();
@@ -81,7 +77,7 @@ export const geocodeAddress = async (address: string): Promise<Coordinates> => {
     const data = await response.json();
     
     if (data.features && data.features.length > 0) {
-      // ORS gibt Koordinaten als [Longitude, Latitude] zurück
+      // ORS gibt Koordinaten als [Longitude, Latitude] zurück.
       const [lon, lat] = data.features[0].geometry.coordinates;
       return { latitude: lat, longitude: lon };
     }
@@ -98,9 +94,7 @@ export const geocodeAddress = async (address: string): Promise<Coordinates> => {
   }
 };
 
-/**
- * Berechnet eine Route zwischen zwei Koordinaten mit dem gewählten Transportmittel.
- */
+// Berechnet die komplette Route zwischen Start und Ziel für die Karte.
 export const getRoute = async (
   start: Coordinates, 
   end: Coordinates, 
@@ -112,7 +106,7 @@ export const getRoute = async (
     const startStr = `${start.longitude},${start.latitude}`;
     const endStr = `${end.longitude},${end.latitude}`;
     
-    // Profil je nach Modus wählen
+    // Profil je nach Modus wählen.
     let profile = 'foot-walking';
     if (mode === 'bike') profile = 'cycling-regular';
     if (mode === 'car') profile = 'driving-car';
@@ -127,7 +121,7 @@ export const getRoute = async (
     if (data.features && data.features.length > 0) {
       const feature = data.features[0];
       
-      // ORS gibt ein Array von [lon, lat] Arrays zurück. Wir mappen es für react-native-maps
+      // ORS gibt [lon, lat] zurück. react-native-maps braucht latitude/longitude.
       const coords = feature.geometry.coordinates.map((point: number[]) => ({
         latitude: point[1],
         longitude: point[0]

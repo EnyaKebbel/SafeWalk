@@ -2,6 +2,8 @@ import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import { getNotificationsEnabled } from "./settingsService";
 
+// Notification-Service: fragt Rechte ab und plant die Walk-Erinnerung.
+
 const WALK_REMINDER_CHANNEL_ID = "walk-reminders";
 const ONE_MINUTE_IN_MS = 60 * 1000;
 const MIN_SCHEDULE_DELAY_MS = 5 * 1000;
@@ -14,7 +16,7 @@ type NotificationPermissionResult = {
   };
 };
 
-// Sorgt dafuer, dass lokale Notifications auch im Vordergrund sichtbar sind.
+// Sorgt dafür, dass lokale Notifications auch im Vordergrund sichtbar sind.
 export function configureNotificationPresentation() {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -36,6 +38,7 @@ function hasNotificationPermission(permission: NotificationPermissionResult) {
 }
 
 async function ensureNotificationPermissions() {
+  // Erst vorhandene Rechte prüfen, danach nur bei Bedarf aktiv fragen.
   const currentPermissions =
     (await Notifications.getPermissionsAsync()) as NotificationPermissionResult;
 
@@ -49,6 +52,7 @@ async function ensureNotificationPermissions() {
 }
 
 async function ensureWalkReminderChannel() {
+  // Android braucht einen Channel, damit Ton/Vibration wie gewünscht funktionieren.
   if (Platform.OS !== "android") {
     return;
   }

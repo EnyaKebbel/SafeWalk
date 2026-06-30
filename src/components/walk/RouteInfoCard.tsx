@@ -10,6 +10,7 @@ interface RouteInfoCardProps {
   onStartNavigation?: () => void;
 }
 
+// Dauer & Distanz einer Route
 export default function RouteInfoCard({ summary, mode, onStartNavigation }: RouteInfoCardProps) {
   // Zeit formatieren (Sekunden zu Min/Std)
   const formatDuration = (seconds: number) => {

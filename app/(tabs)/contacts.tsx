@@ -20,27 +20,29 @@ import ContactModal from "../../src/components/contacts/ContactModal";
 import ContactImportModal, { ImportableContact } from "../../src/components/contacts/ContactImportModal";
 import DeleteConfirmModal from "../../src/components/modals/DeleteConfirmModal";
 
+// Kontaktverwaltung: lädt Kontakte live aus Firebase und zeigt bei Offline den Cache.
+// Hier liegen UI-Zustand, Popups und die Aktionen für Hinzufügen/Bearbeiten/Löschen.
 export default function ContactsScreen() {
-  // Speichert die Liste aller Notfallkontakte aus Firebase
+  // Aktuelle Kontaktliste, die im Screen angezeigt wird.
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
   const [isShowingCachedContacts, setIsShowingCachedContacts] = useState(false);
   const lastLiveSnapshotAt = useRef(0);
   
-  // State-Variablen für das Popup zum Hinzufügen/Bearbeiten
+  // Werte für das Popup zum Hinzufügen oder Bearbeiten.
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [importModalVisible, setImportModalVisible] = useState(false);
 
-  // State für das eigene Lösch-Bestätigungs-Popup
+  // Merkt sich, welcher Kontakt gerade gelöscht werden soll.
   const [contactToDelete, setContactToDelete] = useState<{id: string, name: string} | null>(null);
 
   // Holt zuerst den lokalen Cache und aktualisiert danach live aus Firebase.
   useEffect(() => {
     let cacheNoticeTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    // Dadurch ist die Kontaktliste sofort nutzbar, waehrend Firebase noch verbindet.
+    // Dadurch ist die Kontaktliste sofort nutzbar, während Firebase noch verbindet.
     getCachedTrustedContacts().then((cachedContacts) => {
       if (cachedContacts.length > 0) {
         setContacts(cachedContacts);
@@ -84,7 +86,7 @@ export default function ContactsScreen() {
     useCallback(() => {
       let isActive = true;
 
-      // Tabs werden nicht immer neu gemountet. Beim Fokus pruefen wir deshalb erneut,
+      // Tabs werden nicht immer neu gemountet. Beim Fokus prüfen wir deshalb erneut,
       // ob nur alte Cache-Daten sichtbar sind und kein aktueller Live-Snapshot kam.
       const timeoutId = setTimeout(async () => {
         const cachedContacts = await getCachedTrustedContacts();
@@ -102,7 +104,6 @@ export default function ContactsScreen() {
     }, [])
   );
 
-  // Öffnet das Popup für einen neuen oder bestehenden Kontakt
   useEffect(() => {
     if (!isShowingCachedContacts) {
       return;
@@ -116,7 +117,7 @@ export default function ContactsScreen() {
         setIsShowingCachedContacts(false);
         lastLiveSnapshotAt.current = Date.now();
       } catch {
-        // Offline bleiben wir ruhig beim lokalen Cache und versuchen es spaeter erneut.
+        // Offline bleiben wir ruhig beim lokalen Cache und versuchen es später erneut.
       }
     };
 
@@ -126,6 +127,7 @@ export default function ContactsScreen() {
     return () => clearInterval(intervalId);
   }, [isShowingCachedContacts]);
 
+  // Öffnet das Kontakt-Popup entweder leer oder mit vorhandenen Daten.
   const openModal = (contact?: TrustedContact) => {
     if (contact) {
       setEditingId(contact.id!);
@@ -146,7 +148,7 @@ export default function ContactsScreen() {
     setPhone("");
   };
 
-  // Speichert den Kontakt
+  // Speichert einen neuen Kontakt oder überschreibt den bearbeiteten Kontakt.
   const handleSave = async () => {
     if (!name.trim() || !phone.trim()) return;
 
@@ -174,16 +176,19 @@ export default function ContactsScreen() {
     }
   };
 
+  // Öffnet zuerst die Bestätigung, damit nicht sofort gelöscht wird.
   const confirmDelete = (id: string, contactName: string) => {
     setContactToDelete({ id, name: contactName });
   };
 
+  // Löscht den Kontakt erst nach Bestätigung aus Firebase.
   const handleDelete = async () => {
     if (!contactToDelete) return;
     await deleteTrustedContact(contactToDelete.id);
     setContactToDelete(null);
   };
 
+  // Tauscht Kontakte lokal und speichert die neue Priorität in Firebase.
   const moveUp = async (index: number) => {
     if (index === 0) return;
     const newContacts = [...contacts];
@@ -195,6 +200,7 @@ export default function ContactsScreen() {
     await updateContactsOrder(newContacts);
   };
 
+  // Gleiche Logik wie moveUp, nur eine Position nach unten.
   const moveDown = async (index: number) => {
     if (index === contacts.length - 1) return;
     const newContacts = [...contacts];
@@ -214,7 +220,7 @@ export default function ContactsScreen() {
       </View>
 
       {isShowingCachedContacts && (
-        // Sichtbarer Nachweis fuer den Offline-/Caching-Modus aus der Aufgabenstellung.
+        // Sichtbarer Hinweis, wenn gerade nur gespeicherte Kontakte angezeigt werden.
         <View style={styles.cacheNotice}>
           <Ionicons name="cloud-offline-outline" size={18} color={colors.secondary} />
           <Text style={styles.cacheNoticeText}>

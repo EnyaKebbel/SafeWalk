@@ -20,7 +20,7 @@ type PrimaryButtonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-// Wiederverwendbarer Button fuer die wichtigsten Aktionen der App.
+// Wiederverwendbarer Button für die wichtigsten Aktionen der App
 export default function PrimaryButton({
   title,
   onPress,
@@ -32,7 +32,7 @@ export default function PrimaryButton({
 }: PrimaryButtonProps) {
   const isDisabled = disabled || loading;
 
-  // Gibt vor der eigentlichen Button-Aktion direkt haptisches Feedback.
+  // Direktes haptisches Feedback vor Button-Aktion
   const handlePress = () => {
     triggerTestHaptic();
     onPress();

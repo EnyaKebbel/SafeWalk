@@ -13,6 +13,7 @@ type NotifyContactModalProps = {
   onSkip: () => void;
 };
 
+// Popup nach "Arrived Safely" - Kontakte auswählen & per SMS informieren
 export default function NotifyContactModal({ visible, onClose, onSelectContacts, onSkip }: NotifyContactModalProps) {
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -27,7 +28,7 @@ export default function NotifyContactModal({ visible, onClose, onSelectContacts,
       });
       return () => unsubscribe();
     } else {
-      // Zuruecksetzen, wenn Modal geschlossen wird
+      // Zurücksetzen, wenn das Modal geschlossen wird.
       setSelectedIds(new Set());
     }
   }, [visible]);
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   contactItemActive: {
-    // Macht ausgewaehlte Kontakte sichtbar, ohne das Layout zu veraendern.
+    // Macht ausgewählte Kontakte sichtbar, ohne das Layout zu verändern.
     borderColor: colors.primary,
     backgroundColor: colors.cardLight,
   },

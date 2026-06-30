@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing } from "../../constants/theme";
 import AppCard from "../cards/AppCard";
 
-// Kurzer Hinweis auf die spaetere Emergency-Contact-Logik.
+// Hinweis auf die spätere Emergency-Contact-Logik.
 export default function WalkSafetyNotice() {
   return (
     <AppCard style={styles.notice}>

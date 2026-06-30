@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Speichern & laden von Notification-Einstellungen lokal mit AsyncStorage
+
 const NOTIFICATION_STORAGE_KEY = "@settings_notifications_enabled";
 
 export async function getNotificationsEnabled() {

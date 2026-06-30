@@ -17,7 +17,7 @@ function getRemainingMs(endsAt: string) {
     return new Date(endsAt).getTime() - Date.now();
 }
 
-// Berechnet die Anzeige fuer den laufenden Timer aus der gespeicherten Endzeit.
+// Berechnet die Anzeige für den laufenden Timer aus der gespeicherten Endzeit.
 function formatRemainingTime(endsAt: string) {
     const remainingMs = getRemainingMs(endsAt);
 
@@ -32,14 +32,14 @@ function formatRemainingTime(endsAt: string) {
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-// Home screen as central entry point for map, active route and quick actions.
+// Home-Screen: Einstieg mit Karten-Vorschau, aktivem Walk, sicher angekommen und SOS.
 export default function HomeScreen() {
     const [activeWalk, setActiveWalk] = useState<ActiveWalk | null>(null);
     const [remainingTime, setRemainingTime] = useState("");
     
     const [notifyModalVisible, setNotifyModalVisible] = useState(false);
 
-    // Laedt den aktiven Walk immer neu, wenn der Home Screen wieder sichtbar wird.
+    // Lädt den aktiven Walk immer neu, wenn der Home Screen wieder sichtbar wird.
     const loadActiveWalk = useCallback(async () => {
         const walk = await getActiveWalk();
         setActiveWalk(walk);
@@ -85,10 +85,12 @@ export default function HomeScreen() {
         return remainingMs > 0 && remainingMs <= 60 * 1000;
     }, [activeWalk, remainingTime]);
 
+    // Öffnet die Kontaktauswahl, bevor der Walk wirklich beendet wird.
     const handleArrivedSafelyClick = () => {
         setNotifyModalVisible(true);
     };
 
+    // Beendet den Walk lokal und räumt den Timer-Status im Screen auf.
     const finishWalkAndClose = async () => {
         setNotifyModalVisible(false);
         await clearActiveWalk();
@@ -96,6 +98,7 @@ export default function HomeScreen() {
         setRemainingTime("");
     };
 
+    // Öffnet die SMS-App mit allen ausgewählten Kontakten.
     const handleNotifyContact = async (contacts: TrustedContact[]) => {
         const message = "I just arrived safely at my destination!";
         const phoneNumbers = contacts.map(c => c.contactNumber);
@@ -117,7 +120,7 @@ export default function HomeScreen() {
     };
 
     const triggerPanic = async () => {
-        // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geoeffnet wird.
+        // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geöffnet wird.
         triggerTestHaptic();
         try {
             const topContact = await getTopPriorityContact();

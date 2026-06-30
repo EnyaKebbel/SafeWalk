@@ -13,11 +13,12 @@ import {
 } from "../../src/services/walkService";
 import { cancelWalkReminderNotification } from "../../src/services/notificationService";
 
+// Einstellungen & Legal-Seite
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
-    // Beim Starten der Seite laden wir den gespeicherten Zustand
+    // Beim Starten der Seite laden wir den gespeicherten Zustand (lokal)
     const loadSettings = async () => {
       try {
         setNotificationsEnabled(await getNotificationsEnabled());

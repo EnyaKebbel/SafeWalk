@@ -9,12 +9,13 @@ interface AddressSearchProps {
   isLoading?: boolean;
 }
 
+// Suchfeld für Adressen mit Autocomplete und Ladeanzeige.
 export default function AddressSearch({ onSearch, isLoading = false }: AddressSearchProps) {
   const [address, setAddress] = useState("");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Debouncing effect für API Calls
+  // Wartet kurz nach dem Tippen, bevor Vorschläge geladen werden.
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (address.length >= 3) {
@@ -25,7 +26,7 @@ export default function AddressSearch({ onSearch, isLoading = false }: AddressSe
       } else {
         setSuggestions([]);
       }
-    }, 500); // 500ms warten nach letztem Tastendruck
+    }, 500); // 500ms warten nach letztem Tastendruck.
 
     return () => clearTimeout(delayDebounceFn);
   }, [address]);
@@ -33,7 +34,7 @@ export default function AddressSearch({ onSearch, isLoading = false }: AddressSe
   const handleSearch = (searchQuery: string) => {
     if (searchQuery.trim().length > 0) {
       Keyboard.dismiss();
-      setSuggestions([]); // Dropdown schließen
+      setSuggestions([]); // Dropdown schließen.
       onSearch(searchQuery.trim());
     }
   };

@@ -59,7 +59,8 @@ const walkDetailsSchema = yup.object({
     ),
 });
 
-// Formular fuer Ziel und erwartete Gehzeit auf dem Walk Details Screen.
+// Formular für Ziel und erwartete Gehzeit auf dem Walk Details Screen.
+// Formik und Yup prüfen die Eingaben, Autocomplete hilft bei der Adresse.
 export default function WalkDestinationForm({
   children,
   suggestionError,
@@ -74,6 +75,7 @@ export default function WalkDestinationForm({
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
+    // Wartet kurz nach dem Tippen, damit nicht bei jedem Zeichen ein API-Call passiert.
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.length >= 3) {
         setIsTyping(true);
@@ -158,7 +160,7 @@ export default function WalkDestinationForm({
                       style={[styles.suggestionItem, index < suggestions.length - 1 && styles.suggestionBorder]}
                       onPress={() => {
                         setFieldValue("destination", item.label);
-                        setSearchQuery(""); // Dropdown schließen
+                        setSearchQuery(""); // Dropdown schließen.
                         setSuggestions([]);
                         Keyboard.dismiss();
                         onDestinationChange();
@@ -335,7 +337,7 @@ const styles = StyleSheet.create({
   modeButton: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: radius.sm - 2, // Inner elements look better with slightly smaller radius
+    borderRadius: radius.sm - 2, // Innen etwas kleiner, damit es optisch sauber sitzt.
   },
   modeButtonActive: {
     backgroundColor: colors.primary,

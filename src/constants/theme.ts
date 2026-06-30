@@ -1,5 +1,6 @@
 
-// Zentrale Design-Werte fuer Farben, Abstaende und Rundungen.
+// Zentrale Design-Werte für Farben, Abstände und Rundungen
+
 export const colors = {
     background: '#0B0B0F',
     card: '#161A24',

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { Stack } from "expo-router";
 import { colors, spacing, radius } from "../src/constants/theme";
 
+// Info-Seite zum Studienprojekt & Entwicklerinnen
 export default function LegalScreen() {
   return (
     <View style={styles.container}>

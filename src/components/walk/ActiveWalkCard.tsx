@@ -14,7 +14,7 @@ type ActiveWalkCardProps = {
   onArrivedSafely: () => void;
 };
 
-// Kompakte Zusammenfassung des laufenden Walks auf dem Home Screen.
+// Kompakte Zusammenfassung des aktiven Walks auf dem Home-Screen.
 export default function ActiveWalkCard({
   activeWalk,
   remainingTime,

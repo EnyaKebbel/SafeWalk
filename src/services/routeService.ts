@@ -1,3 +1,6 @@
+// Route-Service für den Walk-Screen.
+// Fragt OpenRouteService nach Ziel, Dauer und Distanz.
+
 export type Coordinates = {
     latitude: number;
     longitude: number;
@@ -9,11 +12,11 @@ export type RouteSuggestion = {
     distanceKm: number;
 };
 
-// Ein gemeinsamer Env-Key fuer alle OpenRouteService-Aufrufe.
+// Ein gemeinsamer Env-Key für alle OpenRouteService-Aufrufe.
 const ORS_API_KEY = process.env.EXPO_PUBLIC_OPENROUTESERVICE_KEY;
 const ORS_BASE_URL = "https://api.openrouteservice.org";
 
-// Trennt die API-Key-Pruefung vom Screen, damit die UI nur Fehlertexte anzeigen muss.
+// Trennt die API-Key-Prüfung vom Screen, damit die UI nur Fehlertexte anzeigen muss.
 function requireApiKey() {
     if (!ORS_API_KEY) {
         throw new Error(
@@ -71,7 +74,7 @@ export async function getRouteSuggestion(
     const apiKey = requireApiKey();
     const resolvedDestination = await geocodeDestination(destination);
 
-    // Profil je nach Modus wählen
+    // OpenRouteService hat je nach Verkehrsmittel ein anderes Profil.
     let profile = 'foot-walking';
     if (mode === 'bike') profile = 'cycling-regular';
     if (mode === 'car') profile = 'driving-car';

@@ -7,7 +7,7 @@ type ScreenContainerProps = {
     children: ReactNode;
 };
 
-// Gemeinsamer Container für alle Screens mit App-Hintergrund und Padding.
+// Einheitlicher Screen-Container mit Hintergrund und Padding
 export function ScreenContainer({ children }: ScreenContainerProps) {
     return <View style={styles.container}>{children}</View>;
 }

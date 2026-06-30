@@ -1,4 +1,3 @@
-
 import { Stack } from "expo-router";
 import { router } from "expo-router";
 import { useFonts } from "expo-font";
@@ -11,8 +10,9 @@ import { configureNotificationPresentation } from "../src/services/notificationS
 SplashScreen.preventAutoHideAsync()
 configureNotificationPresentation();
 
-// Root-Layout fuer die gesamte App und die gemeinsame Navigation.
+// Root-Layout für die gesamte App und Stack-Navigation.
 export default function RootLayout() {
+    // Schriften aus assets
     const [loaded, error] = useFonts({
         "nunito-regular": require("../src/assets/fonts/Nunito-Regular.ttf"),
         "nunito-bold": require("../src/assets/fonts/Nunito-Bold.ttf"),

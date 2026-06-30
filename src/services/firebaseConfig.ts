@@ -11,6 +11,8 @@ const firebaseConfig = {
     measurementId: "G-EPJ07ES2ZF",
 };
 
+// Initialisiert Firebase für unser SafeWalk-Projekt.
 const app = initializeApp(firebaseConfig);
 
+// Exportiert die Firestore-Datenbank für die Services.
 export const db = getFirestore(app);

@@ -30,12 +30,12 @@ interface ContactImportModalProps {
   onImport: (contacts: ImportableContact[]) => Promise<void>;
 }
 
-// Vereinheitlicht Telefonnummern, damit Duplikate trotz Leerzeichen oder Bindestrichen erkannt werden.
+// Vereinheitlicht Telefonnummern, damit Duplikate trotz Leerzeichen/Bindestrichen erkannt werden.
 function normalizePhoneNumber(phoneNumber: string) {
   return phoneNumber.replace(/[^\d+]/g, "");
 }
 
-// Wandelt Systemkontakte in importierbare Eintraege fuer die SafeWalk-Kontaktliste um.
+// Wandelt Systemkontakte in importierbare Einträge für die SafeWalk-Kontaktliste um.
 function buildImportableContacts(deviceContacts: Contacts.ExistingContact[]) {
   const seenPhoneNumbers = new Set<string>();
 
@@ -48,7 +48,7 @@ function buildImportableContacts(deviceContacts: Contacts.ExistingContact[]) {
         return [];
       }
 
-      // Jede Telefonnummer wird einzeln auswaehlbar, weil ein Systemkontakt mehrere Nummern haben kann.
+      // Jede Telefonnummer wird einzeln auswählbar, weil ein Systemkontakt mehrere Nummern haben kann.
       return phoneNumbers
         .filter((phone) => !!phone.number?.trim())
         .flatMap((phone, index) => {
@@ -71,13 +71,14 @@ function buildImportableContacts(deviceContacts: Contacts.ExistingContact[]) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+// Importiert Kontakte vom Handy in unsere Notfallkontaktliste.
 export default function ContactImportModal({
   visible,
   existingPhoneNumbers,
   onClose,
   onImport,
 }: ContactImportModalProps) {
-  // State fuer geladene Systemkontakte, Auswahl, Suche und Ladezustaende.
+  // State für geladene Systemkontakte, Auswahl, Suche und Ladezustände.
   const [contacts, setContacts] = useState<ImportableContact[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -123,7 +124,7 @@ export default function ContactImportModal({
     [availableContacts, selectedIds]
   );
 
-  // Laedt Systemkontakte neu, sobald das Import-Popup geoeffnet wird.
+  // Lädt Systemkontakte neu, sobald das Import-Popup geöffnet wird.
   useEffect(() => {
     if (!visible) {
       return;
@@ -132,7 +133,7 @@ export default function ContactImportModal({
     loadDeviceContacts();
   }, [visible]);
 
-  // Aktualisiert die Kontaktliste, wenn der Nutzer aus den Systemeinstellungen zurueckkommt.
+  // Aktualisiert die Kontaktliste, wenn der Nutzer aus den Systemeinstellungen zurückkommt.
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
       if (visible && nextState === "active") {
@@ -143,7 +144,7 @@ export default function ContactImportModal({
     return () => subscription.remove();
   }, [visible]);
 
-  // Fragt die Kontaktberechtigung ab und liest anschliessend die Systemkontakte.
+  // Fragt die Kontaktberechtigung ab und liest anschließend die Systemkontakte.
   const loadDeviceContacts = async () => {
     setLoading(true);
     setError(null);
@@ -180,12 +181,12 @@ export default function ContactImportModal({
     }
   };
 
-  // Oeffnet die Systemeinstellungen, damit der Nutzer vollen Kontaktzugriff erlauben kann.
+  // Öffnet die Systemeinstellungen, damit der Nutzer vollen Kontaktzugriff erlauben kann.
   const openAppSettings = async () => {
     await Linking.openSettings();
   };
 
-  // Waehlt einen Kontakt aus oder entfernt ihn wieder aus der Auswahl.
+  // Wählt einen Kontakt aus oder entfernt ihn wieder aus der Auswahl.
   const toggleContact = (contactId: string) => {
     setSelectedIds((currentIds) =>
       currentIds.includes(contactId)
@@ -194,7 +195,7 @@ export default function ContactImportModal({
     );
   };
 
-  // Uebergibt die ausgewaehlten Kontakte an den Contacts-Screen zum Speichern in Firebase.
+  // Übergibt die ausgewählten Kontakte an den Contacts-Screen zum Speichern in Firebase.
   const handleImport = async () => {
     if (selectedContacts.length === 0) {
       return;
@@ -212,7 +213,7 @@ export default function ContactImportModal({
     }
   };
 
-  // Rendert einen leeren Zustand fuer Fehler, fehlende Berechtigung oder keine Treffer.
+  // Rendert einen leeren Zustand für Fehler, fehlende Berechtigung oder keine Treffer.
   const renderEmptyState = () => {
     if (loading) {
       return null;

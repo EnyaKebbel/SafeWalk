@@ -15,6 +15,7 @@ type ActiveWalkTrackerProps = {
   onEndWalk: () => void;
 };
 
+// Live-Tracking während eines Walks mit Karte, Route, GPS-Follow, SOS und sicher angekommen.
 export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkTrackerProps) {
   const mapRef = useRef<MapView>(null);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
@@ -30,7 +31,7 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
       if (status !== 'granted') return;
 
       try {
-        // Initiale Position
+        // Initiale Position holen, damit die Karte starten kann.
         let location = await Location.getCurrentPositionAsync({});
         const coords = {
           latitude: location.coords.latitude,
@@ -38,14 +39,14 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
         };
         setCurrentLocation(coords);
 
-        // Ziel & Route abrufen
+        // Ziel und Route abrufen, falls Internet/API verfügbar ist.
         const destCoords = await geocodeAddress(activeWalk.destination);
         setDestinationCoords(destCoords);
         const routeData = await getRoute(coords, destCoords, 'walk');
         setRoute(routeData);
         setRouteError(null);
 
-        // Map fokussieren
+        // Karte auf die aktuelle Position fokussieren.
         if (mapRef.current) {
           mapRef.current.animateCamera({
             center: coords,
@@ -56,7 +57,7 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
           }, { duration: 1000 });
         }
 
-        // Live-Tracking aktivieren
+        // Live-Tracking aktivieren und Kamera laufend nachziehen.
         locationSubscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
@@ -100,7 +101,7 @@ export default function ActiveWalkTracker({ activeWalk, onEndWalk }: ActiveWalkT
   }, [activeWalk]);
 
   const triggerPanic = async () => {
-    // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geoeffnet wird.
+    // SOS gibt sofort haptisches Feedback, bevor der Anrufdialog geöffnet wird.
     triggerTestHaptic();
     try {
       const topContact = await getTopPriorityContact();

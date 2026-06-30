@@ -7,6 +7,7 @@ type AppTextProps = {
     style?: TextStyle;
 };
 
+// Wiederverwendbarer Text mit Standard-Schrift / Farbe
 export function AppText({ children, style }: AppTextProps) {
     return <Text style={[styles.text, style]}>{children}</Text>;
 }

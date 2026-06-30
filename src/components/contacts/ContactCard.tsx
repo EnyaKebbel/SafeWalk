@@ -15,6 +15,7 @@ interface ContactCardProps {
   onDelete: (id: string, name: string) => void;
 }
 
+// Ein Notfallkontakt mit Priorität, Pfeilen, Bearbeiten, Löschen
 export default function ContactCard({
   contact,
   index,

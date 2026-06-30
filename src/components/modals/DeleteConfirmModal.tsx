@@ -9,6 +9,7 @@ interface DeleteConfirmModalProps {
   onConfirm: () => void;
 }
 
+// Bestätigung vor dem Löschen
 export default function DeleteConfirmModal({
   visible,
   contactName,

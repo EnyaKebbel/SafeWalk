@@ -12,6 +12,8 @@ type RouteMapPreviewProps = {
   activeWalk?: ActiveWalk | null;
 };
 
+// Kleine Karten-Vorschau auf dem Home-Screen.
+// Bei aktivem Walk zeigt sie zusätzlich Ziel und Route.
 export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
   const mapRef = useRef<MapView>(null);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
@@ -31,7 +33,7 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
         };
         setCurrentLocation(coords);
 
-        // Falls wir einen activeWalk haben, Route berechnen
+        // Falls ein Walk aktiv ist, berechnen wir Ziel und Route für die Vorschau.
         if (activeWalk?.destination) {
           const destCoords = await geocodeAddress(activeWalk.destination);
           setDestinationCoords(destCoords);
@@ -75,7 +77,7 @@ export default function RouteMapPreview({ activeWalk }: RouteMapPreviewProps) {
             }}
             showsUserLocation={true}
             showsMyLocationButton={false}
-            scrollEnabled={false} // Im Preview nicht scrollen, sonst klickt man nicht auf die Card
+            scrollEnabled={false} // Preview bleibt ruhig, damit der Tap die Karte öffnet.
             zoomEnabled={false}
             pitchEnabled={false}
             rotateEnabled={false}
